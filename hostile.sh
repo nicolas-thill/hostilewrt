@@ -517,7 +517,6 @@ h_wep_log_key() {
 }
 
 h_wep_attack_is_working() {
-	local bssid=$H_CUR_BSSID
 	local iv
 	local iv_last
 	local time
@@ -529,14 +528,14 @@ h_wep_attack_is_working() {
 	local iv_rate
 
 	time_start=$(h_now)
-	iv_last=$(h_csv_get_network_iv_count $H_CSV_CUR_F $bssid)
+	iv_last=$(h_csv_get_network_iv_count $H_CUR_CSV_F $H_CUR_BSSID)
 	time_last=$(h_now)
 	while [ 1 ]; do
 		sleep $H_REFRESH_DELAY
 		time=$(h_now)
 		time_elapsed=$(($time - $time_start))
 		[ $time_elapsed -ge $H_INJECTION_TIME_LIMIT ] && break
-		iv=$(h_csv_get_network_iv_count $H_CSV_CUR_F $bssid)
+		iv=$(h_csv_get_network_iv_count $H_CUR_CSV_F $H_CUR_BSSID)
 		div=$(($iv - $iv_last))
 		dtime=$(($time - $time_last))
 		iv_rate=$(($div / $dtime))
@@ -551,8 +550,6 @@ h_wep_attack_is_working() {
 h_wep_attack_try() {
 	local replay_func=$1
 	local auth_func
-	local bssid=$H_CUR_BSSID
-	local essid=$H_CUR_ESSID
 	local clients=$H_CUR_CLIENT
 	local iv
 	local crack_time_started
@@ -577,7 +574,7 @@ h_wep_attack_try() {
 		h_log "attack seems to be working \o/ :)"
 		h_led_blink $H_LED_WIP 100
 		while [ 1 ]; do
-			iv=$(h_csv_get_network_iv_count $H_CSV_CUR_F $bssid)
+			iv=$(h_csv_get_network_iv_count $H_CUR_CSV_F $H_CUR_BSSID)
 			if [ $iv -ge $H_IV_MIN ]; then
 				if [ $iv -ge $H_IV_MAX ]; then
 					h_log "max IVs limit ($H_IV_MAX) reached"
