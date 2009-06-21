@@ -569,7 +569,6 @@ h_wep_attack_try() {
 		h_auth_start h_wep_auth_fake1
 	fi
 
-	h_led_blink $H_LED_WIP 500
 	if h_wep_attack_is_working; then
 		h_log "attack seems to be working \o/ :)"
 		h_led_blink $H_LED_WIP 100
@@ -717,11 +716,12 @@ h_wep_try_one_network() {
 	H_KEY_CUR_F="$H_CUR_BSSID-00.key"
 
 	if grep -q "^$H_CUR_BSSID," $H_WEP_F; then
-		h_log "skipping known WEP network: bssid='$H_CUR_BSSID', essid='$H_CUR_ESSID'"
+		h_log "skipping known WEP network: bssid=$H_CUR_BSSID, channel=$H_CUR_CHANNEL, essid='$H_CUR_ESSID'"
 		return 0
 	fi
 
-	h_log "trying WEP network: bssid='$H_CUR_BSSID', essid='$H_CUR_ESSID'"
+	h_led_blink $H_LED_WIP 500
+	h_log "trying WEP network: bssid=$H_CUR_BSSID, channel=$H_CUR_CHANNEL, essid='$H_CUR_ESSID'"
 	
 	h_hw_prepare
 	
