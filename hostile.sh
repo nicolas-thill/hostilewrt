@@ -467,8 +467,6 @@ h_monitor_all() {
 	iwconfig $H_AP_IF >>/tmp/h.log
 	iwconfig $H_MON_IF >>/tmp/h.log
 
-	rm -f ALL-01.*
-	
 	h_capture_start h_capture --write ALL ${H_OPT_BSSID:+--bssid $H_OPT_BSSID} ${H_OPT_CHANNEL:+--channel $H_OPT_CHANNEL} -f 250 --output-format=csv,kismet
 	sleep $H_MONITOR_TIME_LIMIT
 	h_capture_stop
