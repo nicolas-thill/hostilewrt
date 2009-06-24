@@ -597,6 +597,7 @@ h_wep_attack_try() {
 
 	if h_wep_attack_is_working; then
 		h_log "attack seems to be working \o/ :)"
+		h_hook_call_handlers on_wep_attack_working
 		h_led_blink $H_LED_WIP 100
 		while [ 1 ]; do
 			iv=$(h_csv_get_network_iv_count $H_CUR_CSV_F $H_CUR_BSSID)
@@ -619,6 +620,7 @@ h_wep_attack_try() {
 				fi
 			fi
 			if [ -f $H_CUR_KEY_F ]; then
+				h_hook_call_handlers on_wep_key_found
 				h_wep_log_key
 				RC=0
 				break
@@ -746,6 +748,7 @@ h_wep_try_one_network() {
 
 	h_led_blink $H_LED_WIP 500
 	h_log "trying WEP network: bssid=$H_CUR_BSSID, channel=$H_CUR_CHANNEL, essid='$H_CUR_ESSID'"
+	h_hook_call_handlers on_wep_attack_started
 	
 	h_hw_prepare
 	
@@ -770,6 +773,8 @@ h_wep_try_one_network() {
 	done
 	
 	h_capture_stop
+
+	h_hook_call_handlers on_wep_attack_ended
 }
 
 h_wep_try_all_networks() {
