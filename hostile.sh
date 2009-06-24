@@ -381,6 +381,7 @@ h_get_sane_fname() {
 	echo $F | tr ':/' '__'
 }
 
+
 h_auth_start() {
 	$@ >/dev/null 2>&1 &
 	H_AUTH_PID="$! $H_AUTH_PID"
@@ -401,14 +402,12 @@ h_capture_start() {
 	[ -z "$H_CAPTURE_PID" ] || return 1
 	$@ >/dev/null 2>&1 &
 	H_CAPTURE_PID=$!
-	H_CAPTURE_TIME_STARTED=$(h_now)
 	return 0
 }
 
 h_capture_stop() {
 	[ -n "$H_CAPTURE_PID" ] || return 1
 	kill -TERM $H_CAPTURE_PID 2>/dev/null
-	unset H_CAPTURE_TIME_STARTED
 	unset H_CAPTURE_PID
 	return 0
 }
@@ -435,23 +434,19 @@ h_replay_start() {
 	[ -z "$H_REPLAY_PID" ] || return 1
 	$@ >/dev/null 2>&1 &
 	H_REPLAY_PID=$!
-	H_REPLAY_TIME_STARTED=$(h_now)
 	return 0
 }
 
 h_replay_stop() {
 	[ -n "$H_REPLAY_PID" ] || return 1
 	kill -TERM $H_REPLAY_PID 2>/dev/null
-	unset H_REPLAY_TIME_STARTED
 	unset H_REPLAY_PID
 	return 0
 }
 
 
 h_capture() {
-	local opt=$*
-	local cmd="airodump-ng"
-	cmd="$cmd $H_MON_IF $opt"
+	local cmd="airodump-ng $H_MON_IF $*"
 	h_log "running: $cmd"
 	exec $cmd
 }
@@ -621,8 +616,7 @@ h_wep_crack() {
 }
 
 h_wep_auth() {
-	local opt="$*"
-	local cmd="aireplay-ng $H_MON_IF $opt"
+	local cmd="aireplay-ng $H_MON_IF $*"
 	h_log "running: $cmd"
 	exec $cmd
 }
@@ -640,8 +634,7 @@ h_wep_auth_fake3() {
 }
 
 h_wep_deauth() {
-	local opt="$*"
-	h_wep_auth -0 1 -a $H_CUR_BSSID $opt
+	h_wep_auth -0 1 -a $H_CUR_BSSID $*
 }
 
 # Chop-Chop
@@ -655,8 +648,7 @@ h_wep_deauth() {
 #aireplay-ng ath1 --interactive -F -h STA -r p.cap
 
 h_wep_replay() {
-	local opt="$*"
-	local cmd="aireplay-ng $H_MON_IF $opt"
+	local cmd="aireplay-ng $H_MON_IF $*"
 	if [ $H_INJECTION_RATE_LIMIT -gt 0 ]; then
 		cmd="$cmd -x $H_INJECTION_RATE_LIMIT"
 	fi
