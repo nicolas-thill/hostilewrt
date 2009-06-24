@@ -248,9 +248,6 @@ h_hw_init() {
 	wlanconfig $H_MON_IF create wlandev $H_WIFI_IF wlanmode monitor >/dev/null 2>&1 \
 		|| h_log "can't create monitor ($H_MON_IF) interface"
 	H_MON_MAC=$(h_mac_get $H_MON_IF)
-	
-	h_led_off $H_LED_SUCCESS
-	h_led_blink $H_LED_WIP 500
 }
 
 h_hw_fini() {
@@ -269,9 +266,6 @@ h_hw_fini() {
 	[ -n "$H_MAC_OLD" ] && {
 		h_mac_set $H_WIFI_IF $H_MAC_OLD
 	}
-	
-	h_led_off $H_LED_SUCCESS
-	h_led_off $H_LED_WIP
 }
 
 h_sta_start() {
@@ -538,7 +532,6 @@ h_open_try_all_networks() {
 
 h_wep_log_key() {
 	local key=$(cat $H_CUR_KEY_F)
-	h_led_on $H_LED_SUCCESS
 	h_log "key found: $key"
 	echo "$H_CUR_BSSID,$H_CUR_ESSID,$H_CUR_CHANNEL,$key" >>$H_WEP_F
 	H_WEP_CHANNEL=$H_CUR_CHANNEL
@@ -598,7 +591,6 @@ h_wep_attack_try() {
 	if h_wep_attack_is_working; then
 		h_log "attack seems to be working \o/ :)"
 		h_hook_call_handlers on_wep_attack_working
-		h_led_blink $H_LED_WIP 100
 		while [ 1 ]; do
 			iv=$(h_csv_get_network_iv_count $H_CUR_CSV_F $H_CUR_BSSID)
 			if [ $iv -ge $H_IV_MIN ]; then
@@ -746,7 +738,6 @@ h_wep_try_one_network() {
 		return 0
 	fi
 
-	h_led_blink $H_LED_WIP 500
 	h_log "trying WEP network: bssid=$H_CUR_BSSID, channel=$H_CUR_CHANNEL, essid='$H_CUR_ESSID'"
 	h_hook_call_handlers on_wep_attack_started
 	
