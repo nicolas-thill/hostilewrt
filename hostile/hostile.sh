@@ -4,7 +4,7 @@ H_ME=${0##*/}
 H_MY_D=${0%/*}
 H_MY_D=$(cd $H_MY_D; pwd)
 H_MY_PID=$$
-H_VERSION="0.2.2"
+H_VERSION="0.3"
 
 h_usage() {
 	cat << _END_OF_USAGE_
@@ -150,7 +150,20 @@ h_log() {
 	echo "$H_ME [$time_str]: $@" >>$H_LOG_F
 }
 
-h_init() {
+
+h_on_app_start() {
+	h_log "starting"
+	h_log "using config file: $H_CONFIG_F"
+	h_log "using lib directory: $H_LIB_D"
+	h_log "using run directory: $H_RUN_D"
+	h_log "using tmp directory: $H_TMP_D"
+}
+
+h_on_app_end() {
+	h_log "ended"
+}
+
+h_startup() {
 	H_TIME_START=$(h_now)
 	[ -n "$H_OPT_CONFIG_F" ] \
 		&& H_CONFIG_F=$H_OPT_CONFIG_F
@@ -190,15 +203,30 @@ h_init() {
 	H_AP_DNSMASQ_LEASE_F=$H_RUN_D/hostile-dnsmasq.leases
 	H_AP_DNSMASQ_PID_F=$H_RUN_D/hostile-dnsmasq.pid
 
-	h_log "started"
-	h_log "using config file: $H_CONFIG_F"
-	h_log "using lib directory: $H_LIB_D"
-	h_log "using run directory: $H_RUN_D"
-	h_log "using tmp directory: $H_TMP_D"
+	h_hook_register_handlers on_app_starting h_on_app_start
+	h_hook_register_handlers on_app_ended h_on_app_end
+
+	trap h_abort INT TERM
+
+	h_hook_call_handlers on_app_starting
+	h_hw_init
+	h_hook_call_handlers on_app_started
 }
 
-h_fini() {
-	h_log "ended"
+h_cleanup() {
+	h_hook_call_handlers on_app_ending
+	h_auth_stop
+	h_crack_stop
+	h_replay_stop
+	h_capture_stop
+	sleep 1
+	h_hw_fini
+	h_hook_call_handlers on_app_ended
+}
+
+h_abort() {
+	h_cleanup
+	exit 1
 }
 
 h_hw_init() {
@@ -751,29 +779,12 @@ h_wep_try_all_networks() {
 }
 
 
-h_abort() {
-	h_auth_stop
-	h_crack_stop
-	h_replay_stop
-	h_capture_stop
-	sleep 1
-	h_ap_stop
-	h_hw_fini
-	h_log "aborted"
-	exit 1
-}
-trap h_abort INT TERM
-
 h_get_options $@
-h_init
-h_hw_init
-#h_ap_start
+h_startup
 while [ 1 ]; do
 	h_monitor_all
 	h_open_try_all_networks
 	h_wep_try_all_networks
 	sleep 60
 done
-h_ap_stop
-h_hw_fini
-h_fini
+h_cleanup
