@@ -25,6 +25,8 @@ Options:
 	-R,--run-dir DIR      use the specified run directory
 	                      (for temporary files storage)
 
+	-v,--verbose          be verbose (show what is being done)
+
 	-V,--version          display program version and exit
 	-h,--help             display program usage and exit
 
@@ -121,6 +123,9 @@ h_get_options() {
 			-R|--run-dir)
 				shift
 				H_OPT_RUN_D=$1
+				;;
+			-v|--verbose)
+				H_OPT_VERBOSE=1
 				;;
 			-h|--help)
 				h_usage
