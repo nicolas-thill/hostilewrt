@@ -1,0 +1,43 @@
+HostileWRT
+
+Warning: HostileWRT is a security audit tool and an education tool, not a toy. Conducting audits in envirnonment where unknown, foreign or other WiFi Access Points not owned by you or your corporation may cause liability and result in prosecution.
+
+= Flashing =
+Flash your FON2 or other WRT54G or OpenWRT compatible box with OpenWRT 8.09 or 8.09.1
+
+= Connecting =
+ * Take IP address 192.168.1.254
+ * Connect the ethernet cable to port "LAN"
+ * Connect to it (by ssh)
+{{{
+ssh root@192.168.1.1
+}}}
+
+= Install USB support =
+
+{{{
+# opkg update
+# opkg install kmod-usb2
+# opkg install kmod-usb-storage
+# opkg install kmod-fs-vfat
+}}}
+
+If you plan to use FAT / VFAT USB key (most common keys, formated as this filesystem by default), install:
+{{{
+# opkg install kmod-fs-vfat
+}}}
+
+If you plan to use ext2 USB key (USB formated from Linux typically), install:
+{{{
+# opkg install kmod-fs-ext2
+# opkg install kmod-nls-cp437
+# opkg install kmod-nls-iso8859-1
+}}}
+
+If you plan to use ext3 USB key (USB formated from Linux typically), install:
+{{{
+# opkg install kmod-fs-ext3
+}}}
+
+You may have to restart your Fonera in order for the USB support to work properly.
+
