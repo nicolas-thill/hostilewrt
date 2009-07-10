@@ -41,3 +41,18 @@ If you plan to use ext3 USB key (USB formated from Linux typically), install:
 
 You may have to restart your Fonera in order for the USB support to work properly.
 
+= Get HostileWRT on your USB drive =
+See https://hostile.nico-and-co.net/trac/wiki for directions on how to use SVN (Subversion) to get the latest version of HostileWRT scripts on your key.
+
+= Running HostileWRT =
+ * Plug your USB key into the FON2 (or other hardware with USB)
+ * cd into /mnt/usbdrive
+ * cd into your directory with the HostileWRT scripts
+ * Run hostile.sh
+{{{
+./hostile.sh &
+}}}
+ * Watch the result in hostile.log file
+{{{
+tail -f hostile.log
+}}}
