@@ -1,58 +1,76 @@
-HostileWRT
+= HostileWRT =
 
 Warning: HostileWRT is a security audit tool and an education tool, not a toy. Conducting audits in envirnonment where unknown, foreign or other WiFi Access Points not owned by you or your corporation may cause liability and result in prosecution.
 
-= Flashing =
-Flash your FON2 or other WRT54G or OpenWRT compatible box with OpenWRT 8.09 or 8.09.1
+More Warning: HostileWRT is a powerful tool and can be quiet disturbing, please play nice and restrict your "wireless investigations" to your *OWN* networks using the following options when running hostile.sh:
 
-= Connecting =
+  --bssid BSSID      limit wireless exploration to this BSSID only
+
+  --channel CHANNEL  limit wireless exploration to this CHANNEL only
+
+
+== Flashing ==
+
+Flash your FON2 or other WRT54G or OpenWRT compatible box with OpenWrt Kamikaze 8.09.1
+
+
+== Connecting ==
+
  * Take IP address 192.168.1.254
  * Connect the ethernet cable to port "LAN"
  * Connect to it (by ssh)
-{{{
-ssh root@192.168.1.1
-}}}
 
-= Install USB support =
+
+== Install USB support ==
 
 {{{
-# opkg update
-# opkg install kmod-usb2
-# opkg install kmod-usb-storage
-# opkg install kmod-fs-vfat
+ # opkg install kmod-usb2
+ # opkg install kmod-usb-storage
 }}}
 
 If you plan to use FAT / VFAT USB key (most common keys, formated as this filesystem by default), install:
 {{{
-# opkg install kmod-fs-vfat
+ # opkg install kmod-fs-vfat
 }}}
 
 If you plan to use ext2 USB key (USB formated from Linux typically), install:
 {{{
-# opkg install kmod-fs-ext2
-# opkg install kmod-nls-cp437
-# opkg install kmod-nls-iso8859-1
+ # opkg install kmod-fs-ext2
+ # opkg install kmod-nls-cp437
+ # opkg install kmod-nls-iso8859-1
 }}}
 
 If you plan to use ext3 USB key (USB formated from Linux typically), install:
 {{{
-# opkg install kmod-fs-ext3
+ # opkg install kmod-fs-ext3
 }}}
 
 You may have to restart your Fonera in order for the USB support to work properly.
 
-= Get HostileWRT on your USB drive =
+
+== Install required tools ==
+
+{{{
+ # opkg install aircrack-ng
+ # opkg install macchanger
+}}}
+
+
+== Get HostileWRT on your USB drive ==
+
 See https://hostile.nico-and-co.net/trac/wiki for directions on how to use SVN (Subversion) to get the latest version of HostileWRT scripts on your key.
 
-= Running HostileWRT =
+
+== Running HostileWRT ==
+
  * Plug your USB key into the FON2 (or other hardware with USB)
  * cd into /mnt/usbdrive
  * cd into your directory with the HostileWRT scripts
  * Run hostile.sh
-{{{
-./hostile.sh &
-}}}
+   {{{
+    # ./hostile.sh &
+   }}}
  * Watch the result in hostile.log file
-{{{
-tail -f hostile.log
-}}}
+   {{{
+    # tail -f hostile.log
+   }}}
