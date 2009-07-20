@@ -170,7 +170,6 @@ h_log() {
 	echo "$H_ME [$time_str]: $@" >>$H_LOG_F
 }
 
-
 h_on_app_start() {
 	h_log "starting"
 	h_log "using config file: $H_CONFIG_F"
@@ -183,12 +182,27 @@ h_on_app_end() {
 	h_log "ended"
 }
 
+h_setup_linux()
+{
+h_log "h_setup_linux(): We are in Linux"
+H_WIFI_IF=wlan0
+H_AP_IF=ath0
+H_STA_IF=ath1
+H_MON_IF=mon0
+}
+
+h_setup_wrt()
+{
+h_log "h_setup_wrt(): We are in something ELSE, let's say OpenWRT for now"
+}
+
 h_startup() {
 	H_TIME_START=$(h_now)
 	if test `airodump-ng --help | grep Airodump-ng | cut -d ' ' -f 6 | cut -c 2-10` -lt 1513 ; 
 	then 
 		h_log "You are using a release of aircrack-ng prior to r1513... this is probably not going to work"
 	fi
+	[ "$OSTYPE" == "linux-gnu" ] && h_setup_linux || h_setup_wrt
 	[ -n "$H_OPT_CONFIG_F" ] \
 		&& H_CONFIG_F=$H_OPT_CONFIG_F
 	[ -r $H_CONFIG_F ] \
@@ -222,7 +236,7 @@ h_startup() {
 	cd $H_TMP_D >/dev/null 2>&1 \
 		|| h_error "can't use tmp directory '$H_TMP_D'"
 	for M in $H_LIB_D/[0-9][0-9]-*.sh; do
-		source $M
+			source $M
 	done
 
 	h_hook_register_handlers on_app_starting h_on_app_start
@@ -247,18 +261,35 @@ h_cleanup() {
 }
 
 h_abort() {
+	h_log "Caught ABORT, exiting gracefully"
 	h_cleanup
 	exit 1
 }
 
-h_hw_init() {
-	[ -n "$H_MAC" ] && {
-		H_MAC_OLD=$(h_mac_get $H_WIFI_IF)
-		h_mac_set $H_WIFI_IF $H_MAC
-	}
-	H_MAC=$(h_mac_get $H_WIFI_IF)
-	h_log "using interface: $H_WIFI_IF, mac address: $H_MAC"
+h_hw_init_ath5k() {
+iw dev $H_WIFI_IF interface add $H_AP_IF type ibss
+#wlanconfig $H_AP_IF create wlandev $H_WIFI_IF wlanmode ap >/dev/null 2>&1 \
+#|| h_log "can't create ap ($H_AP_IF) interface"
+H_AP_MAC=$(h_mac_get $H_AP_IF)
 
+iw dev $H_WIFI_IF interface add $H_STA_IF type managed
+#wlanconfig $H_STA_IF create wlandev $H_WIFI_IF wlanmode sta nosbeacon >/dev/null 2>&1 \
+#|| h_log "can't create sta ($H_STA_IF) interface"
+H_STA_MAC=$(h_mac_get $H_STA_IF)
+
+# ath5k example:
+iw dev $H_WIFI_IF interface add $H_MON_IF type monitor
+#wlanconfig $H_MON_IF create wlandev $H_WIFI_IF wlanmode monitor >/dev/null 2>&1 \
+#|| h_log "can't create monitor ($H_MON_IF) interface"
+H_MON_MAC=$(h_mac_get $H_MON_IF)
+}
+
+h_hw_init_linux() {
+# TODO: Add detection of driver and associated commands (madwifi, ath5k, ...)
+h_hw_init_ath5k
+}
+
+h_hw_init_wrt() {
 	wlanconfig $H_AP_IF create wlandev $H_WIFI_IF wlanmode ap >/dev/null 2>&1 \
 		|| h_log "can't create ap ($H_AP_IF) interface"
 	H_AP_MAC=$(h_mac_get $H_AP_IF)
@@ -272,7 +303,35 @@ h_hw_init() {
 	H_MON_MAC=$(h_mac_get $H_MON_IF)
 }
 
-h_hw_fini() {
+h_hw_init() {
+	[ -n "$H_MAC" ] && {
+		H_MAC_OLD=$(h_mac_get $H_WIFI_IF)
+		h_mac_set $H_WIFI_IF $H_MAC
+	}
+	H_MAC=$(h_mac_get $H_WIFI_IF)
+	h_log "using interface: $H_WIFI_IF, mac address: $H_MAC"
+
+	[ "$OSTYPE" == "linux-gnu" ] && h_hw_init_linux || h_hw_init_wrt
+}
+
+h_hw_fini_linux() {
+	ifconfig $H_MON_IF down
+	sleep 1
+	iw dev $H_MON_IF del
+#	wlanconfig $H_MON_IF destroy >/dev/null 2>&1
+
+	ifconfig $H_STA_IF down
+	sleep 1
+	iw dev $H_STA_IF del
+#	wlanconfig $H_STA_IF destroy >/dev/null 2>&1
+
+	ifconfig $H_AP_IF down
+	sleep 1
+	iw dev $H_AP_IF del
+#	wlanconfig $H_AP_IF destroy >/dev/null 2>&1
+}
+
+h_hw_fini_wrt() {
 	ifconfig $H_MON_IF down
 	sleep 1
 	wlanconfig $H_MON_IF destroy >/dev/null 2>&1
@@ -284,6 +343,10 @@ h_hw_fini() {
 	ifconfig $H_AP_IF down
 	sleep 1
 	wlanconfig $H_AP_IF destroy >/dev/null 2>&1
+}
+
+h_hw_fini() {
+	[ "$OSTYPE" == "linux-gnu" ] && h_hw_fini_linux || h_hw_fini_wrt
 
 	[ -n "$H_MAC_OLD" ] && {
 		h_mac_set $H_WIFI_IF $H_MAC_OLD
