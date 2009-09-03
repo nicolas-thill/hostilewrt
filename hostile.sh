@@ -4,7 +4,7 @@ H_ME=${0##*/}
 H_MY_D=${0%/*}
 H_MY_D=$(cd $H_MY_D; pwd)
 H_MY_PID=$$
-H_VERSION="0.3"
+H_VERSION="0.3.1"
 
 h_usage() {
 	cat << _END_OF_USAGE_
@@ -239,8 +239,8 @@ h_startup() {
 			source $M
 	done
 
-	h_hook_register_handlers on_app_starting h_on_app_start
-	h_hook_register_handlers on_app_ended h_on_app_end
+	h_hook_register_handler on_app_starting h_on_app_start
+	h_hook_register_handler on_app_ended h_on_app_end
 
 	trap h_abort INT TERM
 
