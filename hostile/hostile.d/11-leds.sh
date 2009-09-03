@@ -46,13 +46,14 @@ h_leds_on_wep_key_found() {
 }
 
 h_leds_wrt () {
-h_hook_register_handlers on_app_started h_leds_on_app_started
-h_hook_register_handlers on_app_ended h_leds_on_app_ended
-h_hook_register_handlers on_wep_attack_started h_leds_on_wep_attack_started
-h_hook_register_handlers on_wep_attack_working h_leds_on_wep_attack_working
-h_hook_register_handlers on_wep_key_found h_leds_on_wep_key_found
+	h_hook_register_handler on_app_started h_leds_on_app_started
+	h_hook_register_handler on_app_ended h_leds_on_app_ended
+	h_hook_register_handler on_wep_attack_started h_leds_on_wep_attack_started
+	h_hook_register_handler on_wep_attack_working h_leds_on_wep_attack_working
+	h_hook_register_handler on_wep_key_found h_leds_on_wep_key_found
 }
 
-h_leds_linux () {}
+h_leds_linux () {
+}
 
 [ "$OSTYPE" == "linux-gnu" ] && h_leds_linux || h_leds_wrt
