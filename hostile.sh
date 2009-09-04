@@ -167,7 +167,7 @@ h_log() {
 	local s
 	time_now=$(h_now)
 	t=$(($time_now - $H_TIME_START))
-	h=$(($ / 3600))
+	h=$(($t / 3600))
 	t=$(($t % 3600))
 	m=$(($t / 60))
 	s=$(($t % 60))
