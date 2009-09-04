@@ -16,8 +16,7 @@ Scan its wireless environment and try to "play" with it
 Options:
 	-b,--bssid BSSID      restrict exploration to the specified BSSID
 	-c,--channel CHANNEL  restrict exploration to the specified channel
-	-m,--mac MAC          use specified hardware MAC address
-	                      (use auto to get a random one)
+
 	-l,--log-file FILE    log activity to the specified file
 	-L,--lib-dir DIR      use the specified lib directory
 	                      (for helper functions & scripts)
@@ -118,10 +117,6 @@ h_get_options() {
 			-C|--config-file)
 				shift
 				H_OPT_CONFIG_F=$1
-				;;
-			-m|--mac|--hwaddr)
-				shift
-				H_OPT_MAC=$1
 				;;
 			-l|--log-file)
 				shift
