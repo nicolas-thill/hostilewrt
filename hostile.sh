@@ -80,6 +80,8 @@ else
 	H_RUN_D=$H_MY_D/hostile-run.d
 fi
 
+H_OP_MODES="ap,sta,wep_attack,wep_bruteforce"
+
 H_CAPTURE_IV_ONLY=1
 H_CRACK_TIME_LIMIT=900
 H_INJECTION_RATE_LIMIT=300
@@ -102,6 +104,16 @@ H_WIFI_IF=wifi0
 H_AP_IF=ath0
 H_STA_IF=ath1
 H_MON_IF=ath2
+
+h_get_op_modes() {
+	local ifs
+	ifs=$IFS
+	IFS=,
+	for mode in $H_OP_MODES; do
+		eval "H_OP_MODE_$mode=1"
+	done
+	IFS=$ifs
+}
 
 h_get_options() {
 	while [ -n "$1" ]; do
@@ -243,6 +255,8 @@ h_startup() {
 	for M in $H_LIB_D/[0-9][0-9]-*.sh; do
 		. $M
 	done
+
+	h_get_op_modes
 
 	h_hook_register_handler on_app_starting h_on_app_start
 	h_hook_register_handler on_app_ended h_on_app_end
