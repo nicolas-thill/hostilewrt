@@ -391,29 +391,29 @@ h_hw_prepare() {
 
 h_csv_get() {
 	local F
-	local bssid
+	local B
 	F=$1
-	bssid=$2
-	cat $F 2>/dev/null | tail -n +3 | grep "^$bssid,"
+	B=$2
+	cat $F 2>/dev/null | tail -n +3 | grep "^$B,"
 }
 
 h_csv_get_network_iv_count() {
 	local F
-	local bssid
+	local B
 	local v
 	F=$1
-	bssid=$2
-	v=$(h_csv_get $F $bssid | awk -F\, '{ print $11; }')
+	B=$2
+	v=$(h_csv_get $F $B | awk -F\, '{ print $11; }')
 	[ -z "$v" ] && v=0
 	echo $v
 }
 
 h_csv_get_network_sta() {
 	local F
-	local bssid
+	local B
 	F=$1
-	bssid=$2
-	cat $F 2>/dev/null | grep "^.*,.*,.*,.*,.*, $bssid" | awk -F\, '{ print $1; }'
+	B=$2
+	cat $F 2>/dev/null | grep "^.*,.*,.*,.*,.*, $B" | awk -F\, '{ print $1; }'
 }
 
 
