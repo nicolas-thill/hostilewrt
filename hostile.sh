@@ -159,9 +159,19 @@ h_now() {
 }
 
 h_log() {
-	local time_now=$(h_now)
-	local time_elapsed=$(($time_now - $H_TIME_START))
-	local time_str=$(date +%T -d 0:0:$time_elapsed)
+	local time_now
+	local time_str
+	local t
+	local h
+	local m
+	local s
+	time_now=$(h_now)
+	t=$(($time_now - $H_TIME_START))
+	h=$(($ / 3600))
+	t=$(($t % 3600))
+	m=$(($t / 60))
+	s=$(($t % 60))
+	time_str=$(printf "%.2d:%.2d:%.2d" $h $m $s)
 	echo "$H_ME [$time_str]: $@" >>$H_LOG_F
 }
 
