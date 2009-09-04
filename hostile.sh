@@ -206,7 +206,7 @@ h_startup() {
 	[ -n "$H_OPT_CONFIG_F" ] \
 		&& H_CONFIG_F=$H_OPT_CONFIG_F
 	[ -r $H_CONFIG_F ] \
-		&& source $H_CONFIG_F \
+		&& . $H_CONFIG_F \
 		|| h_error "can't read config file '$H_CONFIG_F'"
 	[ -n "$H_OPT_LIB_D" ] \
 		&& H_LIB_D=$H_OPT_LIB_D
@@ -236,7 +236,7 @@ h_startup() {
 	cd $H_TMP_D >/dev/null 2>&1 \
 		|| h_error "can't use tmp directory '$H_TMP_D'"
 	for M in $H_LIB_D/[0-9][0-9]-*.sh; do
-			source $M
+		. $M
 	done
 
 	h_hook_register_handler on_app_starting h_on_app_start
