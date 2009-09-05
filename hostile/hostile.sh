@@ -982,7 +982,7 @@ h_wpa_bruteforce_try() {
 		dicts=${H_LIB_D}/dict/${country}-wpa-???.dict
 		for dict in $dicts; do
 			[ -f $dict ] || continue
-			words=$(wc -l $dict)
+			words=$(wc -l $dict | awk '{ print $1; }')
 			h_log "trying dict '$dict' ($words words)"
 			h_wpa_dict_crack $dict
 			if [ -f $H_CUR_KEY_F ]; then
