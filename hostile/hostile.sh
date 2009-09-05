@@ -620,7 +620,7 @@ h_wep_attack_try() {
 	local clients
 	local iv
 	local crack_time_started
-	local RC=1
+	local RC
 	
 	replay_func=$1
 
@@ -636,6 +636,7 @@ h_wep_attack_try() {
 		h_auth_start h_wep_auth_fake1
 	fi
 
+	RC=1
 	if h_wep_attack_is_working; then
 		h_log "attack seems to be working \o/ :)"
 		h_hook_call_handlers on_wep_attack_working
@@ -684,7 +685,7 @@ h_wep_bruteforce_try() {
 	local country
 	local dicts
 	local words
-	local RC=1
+	local RC
 
 	clients=$(h_csv_get_network_sta $H_CUR_CSV_F $H_CUR_BSSID | grep -iv $H_MON_MAC)
 	if [ -n "$clients" ]; then
@@ -699,6 +700,8 @@ h_wep_bruteforce_try() {
 
 	#country=$(get_country_from_ssid $H_CUR_ESSID)
 	country="fr"	
+
+	RC=1
 	if h_wep_wait_for_iv 4; then
 		h_log "BF can start \o/ :)"
 		for keysize in 64 128; do
@@ -778,7 +781,8 @@ h_wep_deauth() {
 #aireplay-ng ath1 --interactive -F -h STA -r p.cap
 
 h_wep_replay() {
-	local cmd="aireplay-ng $H_MON_IF $*"
+	local cmd
+	cmd="aireplay-ng $H_MON_IF $*"
 	if [ $H_INJECTION_RATE_LIMIT -gt 0 ]; then
 		cmd="$cmd -x $H_INJECTION_RATE_LIMIT"
 	fi

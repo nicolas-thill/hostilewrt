@@ -1,14 +1,17 @@
 # h_mac
 
 h_mac_get() {
-	local IF=$1
+	local IF
+	IF=$1
 	macchanger --show $IF | sed -e 's,\(.*\) \([0-9a-f\]\+:[0-9a-f]\+:[0-9a-f]\+:[0-9a-f]\+:[0-9a-f]\+:[0-9a-f]\+\) \(.*\),\2,' 2>/dev/null \
 		|| h_error "can't get '$IF' mac address"
 }
 
 h_mac_set() {
-	local IF=$1
-	local MAC=$2
+	local IF
+	local MAC
+	IF=$1
+	MAC=$2
 	local opt
 	case $MAC in
 		auto)
