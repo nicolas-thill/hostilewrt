@@ -33,4 +33,4 @@ h_ap_stop() {
 	return 0
 }
 
-h_hook_register_handler on_app_started h_ap_start
+#h_hook_register_handler on_app_started h_ap_start
