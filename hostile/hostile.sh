@@ -255,11 +255,12 @@ h_startup() {
 		|| h_error "can't create tmp directory in '$H_RUN_D'"
 	cd $H_TMP_D >/dev/null 2>&1 \
 		|| h_error "can't use tmp directory '$H_TMP_D'"
+
+	h_get_op_modes
+
 	for M in $H_LIB_D/[0-9][0-9]-*.sh; do
 		. $M
 	done
-
-	h_get_op_modes
 
 	h_hook_register_handler on_app_starting h_on_app_start
 	h_hook_register_handler on_app_ended h_on_app_end
