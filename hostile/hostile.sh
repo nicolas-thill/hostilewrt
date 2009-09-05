@@ -679,6 +679,7 @@ h_wep_bruteforce_try() {
 	local clients
 	local country
 	local dicts
+	local words
 	local RC=1
 
 	clients=$(h_csv_get_network_sta $H_CUR_CSV_F $H_CUR_BSSID | grep -iv $H_MON_MAC)
@@ -699,6 +700,8 @@ h_wep_bruteforce_try() {
 			dicts=${H_LIB_D}/dict/${country}-wep${keysize}-???.dict
 			for dict in $dicts; do
 				[ -f $dict ] || continue
+				words=$(wc -l $dict | awk '{ print $1; }')
+				h_log "trying dict '$dict' ($words words)"
 				h_wep_dict_crack $keysize $dict
 				if [ -f $H_CUR_KEY_F ]; then
 					h_hook_call_handlers on_wep_key_found
