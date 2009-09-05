@@ -34,7 +34,7 @@ _END_OF_USAGE_
 
 h_version() {
 	cat << _END_OF_VERSION_
-$H_ME v$H_VERSION, Copyright (C) /tmp/lap <contact@tmplab.org>
+$H_ME v$H_VERSION, Copyright (C) 2009 /tmp/lap <contact@tmplab.org>
 
 This program is free and excepted software; you can use it, redistribute it
 and/or modify it under the terms of the Exception General Public License as
