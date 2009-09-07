@@ -1,7 +1,0 @@
-[A-Z0-9]+_private_[A-Z0-9]+
-[A-Z0-9][A-Z0-9]_private_[A-Z0-9][A-Z0-9]
-hm-wifi-.*
-[a-z]+[0-9]+[a-z]+[0-9]+[a-z]+
-homerun
-.*Stockholm.*
-.*stockholm.*
