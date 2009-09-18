@@ -219,7 +219,7 @@ h_startup() {
 	then 
 		h_log "You are using a release of aircrack-ng prior to r1513... this is probably not going to work"
 	fi
-	[ "$OSTYPE" == "linux-gnu" ] && h_setup_linux || h_setup_wrt
+	[ "$OSTYPE" = "linux-gnu" ] && h_setup_linux || h_setup_wrt
 	[ -n "$H_OPT_CONFIG_F" ] \
 		&& H_CONFIG_F=$H_OPT_CONFIG_F
 	[ -r $H_CONFIG_F ] \
@@ -334,7 +334,7 @@ h_hw_init() {
 	H_MAC=$(h_mac_get $H_WIFI_IF)
 	h_log "using interface: $H_WIFI_IF, mac address: $H_MAC"
 
-	[ "$OSTYPE" == "linux-gnu" ] && h_hw_init_linux || h_hw_init_wrt
+	[ "$OSTYPE" = "linux-gnu" ] && h_hw_init_linux || h_hw_init_wrt
 }
 
 h_hw_fini_linux() {
@@ -369,7 +369,7 @@ h_hw_fini_wrt() {
 }
 
 h_hw_fini() {
-	[ "$OSTYPE" == "linux-gnu" ] && h_hw_fini_linux || h_hw_fini_wrt
+	[ "$OSTYPE" = "linux-gnu" ] && h_hw_fini_linux || h_hw_fini_wrt
 
 	[ -n "$H_MAC_OLD" ] && {
 		h_mac_set $H_WIFI_IF $H_MAC_OLD
