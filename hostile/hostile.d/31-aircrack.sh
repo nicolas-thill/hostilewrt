@@ -108,6 +108,12 @@ h_kis_get_networks_by_enc() {
 	h_kis_get_networks $F | grep "^.*;$E" | awk -F\; '{ print $3; }'
 }
 
+h_kis_get_essids() {
+	local F
+	F=$1
+	h_kis_get $F | awk -F\; '{ print $3; }' | sort -u | grep -v "^$"
+}
+
 h_kis_get_network_bssid() {
 	local F
 	local N
