@@ -81,4 +81,4 @@ done
 #echo "WINNER IS=$top $topcountry" # DEBUG
 echo "$topcountry"
 }
-stw_country_get "$1"
+#stw_country_get "$1"
