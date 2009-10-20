@@ -115,6 +115,24 @@ h_get_op_modes() {
 	IFS=$ifs
 }
 
+h_remove_storage_eater_op_modes() {
+	local ifs
+	local next_mode
+	next_mode=""
+	ifs=$IFS
+	IFS=,
+	for mode in $H_OP_MODES; do
+		if [ $mode == "wep_attack" ]
+		then
+			h_log "No big storage, removing mode $mode"
+		else
+			[ -z "$next_mode" ] && next_mode="$mode" || next_mode="${next_mode},$mode"
+		fi
+	done
+	IFS=$ifs
+	H_OP_MODES=$next_mode
+}
+
 h_get_options() {
 	while [ -n "$1" ]; do
 		case $1 in
@@ -213,12 +231,29 @@ h_setup_wrt()
 h_log "h_setup_wrt(): We are in something ELSE, let's say OpenWRT for now"
 }
 
+h_detect_small_storage() {
+local flag_big
+flag_big=0
+for avail in $(df -k |grep -iv '1K-blocks' |fgrep -v '100%' | awk '{ print $2; }')
+do
+	# 100000 == 100M, XXX Should move this limit to hostile.conf file?
+	[ $avail -gt 100000 ] && flag_big=1
+done
+if [ $flag_big -le 0 ]
+then
+	export H_SMALL_STORAGE=1
+	h_log "Small or no storage available, avoiding hard-disk needy applications... H_SMALL_STORAGE=$H_SMALL_STORAGE"
+	h_remove_storage_eater_op_modes
+fi
+}
+
 h_startup() {
 	H_TIME_START=$(h_now)
 	if test `airodump-ng --help | grep Airodump-ng | cut -d ' ' -f 6 | cut -c 2-10` -lt 1513 ; 
 	then 
 		h_log "You are using a release of aircrack-ng prior to r1513... this is probably not going to work"
 	fi
+	h_detect_small_storage
 	[ "$OSTYPE" = "linux-gnu" ] && h_setup_linux || h_setup_wrt
 	[ -n "$H_OPT_CONFIG_F" ] \
 		&& H_CONFIG_F=$H_OPT_CONFIG_F
@@ -405,6 +440,16 @@ h_hw_prepare() {
 		return 0
 	fi
 	return 1
+}
+
+# XXX: TODO Move to event based, after each WEP/WPA network attack
+# XXX: Idea for the hardcoded repository? Maybe should put that in a hostile.conf variable?
+h_if_volatile_backup_results() {
+	if [ $(df . | grep -v "Filesystem" |awk '{ print $1; }') = "tmpfs"  -a "$H_SMALL_STORAGE" -eq 1 ]
+	then
+		cat $H_WEP_F /root/hostile/hostile-wep.txt 2>/dev/null | sort -u > /tmp/temp-wep.txt ; mv /tmp/temp-wep.txt /root/hostile/hostile-wep.txt
+		cat $H_WPA_F /root/hostile/hostile-wpa.txt 2>/dev/null | sort -u > /tmp/temp-wpa.txt ; mv /tmp/temp-wpa.txt /root/hostile/hostile-wpa.txt
+	fi
 }
 
 h_get_last_file() {
@@ -927,6 +972,7 @@ h_wep_try_one_network() {
 h_wep_try_all_networks() {
 	for N in $(cat $H_NET_WEP_F); do
 		h_wep_try_one_network $N
+		h_if_volatile_backup_results
 	done
 }
 
@@ -1055,6 +1101,9 @@ h_wpa_try_one_network() {
 h_wpa_try_all_networks() {
 	for N in $(cat $H_NET_WPA_F); do
 		h_wpa_try_one_network $N
+		# Only if we're on a device with not much storage, we remove the possibly large .cap files
+		[ -n "$H_SMALL_STORAGE" ] && rm *.cap
+		h_if_volatile_backup_results
 	done
 }
 
