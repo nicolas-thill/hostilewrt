@@ -115,24 +115,6 @@ h_get_op_modes() {
 	IFS=$ifs
 }
 
-h_remove_storage_eater_op_modes() {
-	local ifs
-	local next_mode
-	next_mode=""
-	ifs=$IFS
-	IFS=,
-	for mode in $H_OP_MODES; do
-		if [ $mode == "wep_attack" ]
-		then
-			h_log "No big storage, removing mode $mode"
-		else
-			[ -z "$next_mode" ] && next_mode="$mode" || next_mode="${next_mode},$mode"
-		fi
-	done
-	IFS=$ifs
-	H_OP_MODES=$next_mode
-}
-
 h_get_options() {
 	while [ -n "$1" ]; do
 		case $1 in
@@ -243,7 +225,7 @@ h_detect_small_storage() {
 	then
 		export H_SMALL_STORAGE=1
 		h_log "Small or no storage available, avoiding hard-disk needy applications... H_SMALL_STORAGE=$H_SMALL_STORAGE"
-		h_remove_storage_eater_op_modes
+		H_OP_MODE_wep_attack=0
 	fi
 }
 
