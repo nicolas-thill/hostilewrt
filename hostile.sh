@@ -232,19 +232,19 @@ h_log "h_setup_wrt(): We are in something ELSE, let's say OpenWRT for now"
 }
 
 h_detect_small_storage() {
-local flag_big
-flag_big=0
-for avail in $(df -k |grep -iv '1K-blocks' |fgrep -v '100%' | awk '{ print $2; }')
-do
-	# 100000 == 100M, XXX Should move this limit to hostile.conf file?
-	[ $avail -gt 100000 ] && flag_big=1
-done
-if [ $flag_big -le 0 ]
-then
-	export H_SMALL_STORAGE=1
-	h_log "Small or no storage available, avoiding hard-disk needy applications... H_SMALL_STORAGE=$H_SMALL_STORAGE"
-	h_remove_storage_eater_op_modes
-fi
+	local flag_big
+	flag_big=0
+	for avail in $(df -k |grep -iv '1K-blocks' |fgrep -v '100%' | awk '{ print $2; }')
+	do
+		# 100000 == 100M, XXX Should move this limit to hostile.conf file?
+		[ $avail -gt 100000 ] && flag_big=1
+	done
+	if [ $flag_big -le 0 ]
+	then
+		export H_SMALL_STORAGE=1
+		h_log "Small or no storage available, avoiding hard-disk needy applications... H_SMALL_STORAGE=$H_SMALL_STORAGE"
+		h_remove_storage_eater_op_modes
+	fi
 }
 
 h_startup() {
