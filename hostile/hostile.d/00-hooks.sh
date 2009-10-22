@@ -13,7 +13,7 @@ h_hook_register_handler() {
 	handler=$2
 	hook_var="H_HOOK_$hook"
 	eval "handlers=\"\${$hook_var}\""
-	eval "$hook_var=\"$handlers $handler\""
+	eval "$hook_var=\"$handlers $handler \""
 }
 
 h_hook_unregister_handler() {
@@ -25,7 +25,7 @@ h_hook_unregister_handler() {
 	handler=$2
 	hook_var="H_HOOK_$hook"
 	eval "handlers=\"\${$hook_var}\""
-	eval "$hook_var=\"\$(echo $handlers | sed -e 's/$handler//')\""
+	eval "$hook_var=\"\$(echo $handlers | sed -e 's/ $handler / /')\""
 }
 
 h_hook_call_handlers() {
