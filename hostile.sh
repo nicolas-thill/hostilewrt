@@ -4,7 +4,7 @@ H_ME=${0##*/}
 H_MY_D=${0%/*}
 H_MY_D=$(cd $H_MY_D; pwd)
 H_MY_PID=$$
-H_VERSION="0.3.1"
+H_VERSION="0.4.0"
 
 h_usage() {
 	cat << _END_OF_USAGE_
