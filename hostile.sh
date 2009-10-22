@@ -60,7 +60,7 @@ h_error() {
 
 if [ -f /etc/hostile.conf ]; then
 	H_CONFIG_F=/etc/hostile.conf
-	H_LIB_D=/var/lib/hostile
+	H_LIB_D=/usr/lib/hostile
 	H_LOG_F=/var/log/hostile.log
 	H_PID_F=/var/run/hostile.pid
 	H_RUN_D=/var/run/hostile
