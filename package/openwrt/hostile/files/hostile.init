@@ -1,0 +1,15 @@
+#!/bin/sh /etc/rc.common
+# Copyright (C) 2009 HostileWrt
+
+START=99
+STOP=01
+
+SSD=start-stop-daemon
+
+start() {
+	$SSD -S -b -x hostile
+}
+
+stop() {
+	$SSD -K -p /var/run/hostile.pid
+}
