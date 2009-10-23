@@ -83,25 +83,7 @@ fi
 
 H_OPT_VERBOSE=0
 
-H_OP_MODES="ap,sta,wep_attack,wep_bruteforce,wpa_bruteforce"
-
-H_CAPTURE_IV_ONLY=1
-H_CRACK_TIME_LIMIT=900
-H_INJECTION_RATE_LIMIT=300
-H_INJECTION_TIME_LIMIT=180
-H_IV_MIN=30000
-H_IV_MAX=150000
-H_IV_RATE_SUCCESS=10
-H_MONITOR_TIME_LIMIT=60
 H_REFRESH_DELAY=20
-
-H_AP_IP="10.69.69.69"
-H_AP_NETWORK="10.69.69.0"
-H_AP_NETMASK="255.255.255.0"
-H_AP_DHCP_MIN="10.69.69.11"
-H_AP_DHCP_MAX="10.69.69.19"
-H_AP_DHCP_LEASE_TIME="1h"
-H_AP_ESSID="LoveWRT"
 
 H_WIFI_IF=auto
 
@@ -230,6 +212,14 @@ h_startup() {
 		&& H_PID_F=$H_OPT_PID_F
 	[ -n "$H_OPT_RUN_D" ] \
 		&& H_RUN_D=$H_OPT_RUN_D
+	[ -n "$H_LIB_D" ] \
+		|| h_error "can't use library directory, 'H_LIB_D' not set"
+	[ -n "$H_LOG_F" ] \
+		|| h_error "can't use log file, 'H_LOG_F' not set"
+	[ -n "$H_PID_F" ] \
+		|| h_error "can't use pid file, 'H_PID_F' not set"
+	[ -n "$H_RUN_D" ] \
+		|| h_error "can't use run directory, 'H_RUN_D' not set"
 	touch $H_LOG_F >/dev/null 2>&1 \
 		|| h_error "can't create log file '$H_LOG_F'"
 	touch $H_PID_F >/dev/null 2>&1 \
