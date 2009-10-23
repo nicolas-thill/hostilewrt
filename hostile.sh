@@ -149,6 +149,12 @@ h_get_options() {
 			-v|--verbose)
 				H_OPT_VERBOSE=$(($H_OPT_VERBOSE + 1))
 				;;
+			-vv)
+				H_OPT_VERBOSE=$(($H_OPT_VERBOSE + 2))
+				;;
+			-vvv)
+				H_OPT_VERBOSE=$(($H_OPT_VERBOSE + 3))
+				;;
 			-h|--help)
 				h_usage
 				exit 0
