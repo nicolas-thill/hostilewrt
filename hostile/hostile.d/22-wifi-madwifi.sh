@@ -12,13 +12,17 @@ h_wifi_madwifi_startup() {
 	H_MAC=$(h_mac_get $H_WIFI_IF)
 	h_log "using interface: $H_WIFI_IF, mac address: $H_MAC"
 
-	wlanconfig $H_AP_IF create wlandev $H_WIFI_IF wlanmode ap >/dev/null 2>&1 \
-		|| h_log "can't create ap ($H_AP_IF) interface"
-	H_AP_MAC=$(h_mac_get $H_AP_IF)
+	[ "$H_OP_MODE_ap" = "1" ] && {
+		wlanconfig $H_AP_IF create wlandev $H_WIFI_IF wlanmode ap >/dev/null 2>&1 \
+			|| h_log "can't create ap ($H_AP_IF) interface"
+		H_AP_MAC=$(h_mac_get $H_AP_IF)
+	}
 	
-	wlanconfig $H_STA_IF create wlandev $H_WIFI_IF wlanmode sta nosbeacon >/dev/null 2>&1 \
-		|| h_log "can't create sta ($H_STA_IF) interface"
-	H_STA_MAC=$(h_mac_get $H_STA_IF)
+	[ "$H_OP_MODE_sta" = "1" ] && {
+		wlanconfig $H_STA_IF create wlandev $H_WIFI_IF wlanmode sta nosbeacon >/dev/null 2>&1 \
+			|| h_log "can't create sta ($H_STA_IF) interface"
+		H_STA_MAC=$(h_mac_get $H_STA_IF)
+	}
 
 	wlanconfig $H_MON_IF create wlandev $H_WIFI_IF wlanmode monitor >/dev/null 2>&1 \
 		|| h_log "can't create monitor ($H_MON_IF) interface"
