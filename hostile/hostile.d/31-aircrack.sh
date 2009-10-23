@@ -149,6 +149,6 @@ h_kis_get_network_max_rate() {
 h_check_aircrack_version() {
 	if test `airodump-ng --help | grep Airodump-ng | cut -d ' ' -f 6 | cut -c 2-10` -lt 1513 ; 
 	then 
-		h_log "You are using a release of aircrack-ng prior to r1513... this is probably not going to work"
+		h_log 0 "You are using a release of aircrack-ng prior to r1513... this is probably not going to work"
 	fi
 }
