@@ -242,6 +242,12 @@ h_startup() {
 	cd $H_TMP_D >/dev/null 2>&1 \
 		|| h_error "can't use tmp directory '$H_TMP_D'"
 
+	h_log "starting"
+	h_log "using config file: $H_CONFIG_F"
+	h_log "using lib directory: $H_LIB_D"
+	h_log "using run directory: $H_RUN_D"
+	h_log "using tmp directory: $H_TMP_D"
+
 	h_get_op_modes
 	h_detect_small_storage
 
@@ -250,12 +256,6 @@ h_startup() {
 	done
 
 	trap h_abort INT TERM
-
-	h_log "starting"
-	h_log "using config file: $H_CONFIG_F"
-	h_log "using lib directory: $H_LIB_D"
-	h_log "using run directory: $H_RUN_D"
-	h_log "using tmp directory: $H_TMP_D"
 
 	h_hook_call_handlers on_app_starting
 	h_hook_call_handlers on_wifi_startup
