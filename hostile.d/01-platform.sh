@@ -1,21 +1,47 @@
 # h_platform
 # Hardware Platform / OS specific
 
-H_PLATFORMS="fonera-1,fonera-2,generic-pc"
+h_platform_detect() {
+	local cpu
 
-H_OS=$(uname -s)
-H_MACHINE=$(uname -m)
+	H_MACHINE=$(uname -m)
+	H_OS=$(uname -s)
+	case $H_OS in
+	  *Linux*)
+		cpu=$(cat /proc/cpuinfo |grep "cpu model" | cut -d: -f2)
+		case $H_MACHINE in
+		  i?86)
+			H_PLATFORM="generic-pc"
+			;;
+		  mips)
+			case $cpu in
+			  *Atheros*)
+				case $cpu in
+				  *AR2315*)
+					if [ -d /sys/bus/usb ]; then
+						H_PLATFORM="fon2202"
+					else
+						H_PLATFORM="fon2100"
+					fi
+					;;
+				esac
+				;;
+			  *Broadcom*)
+				case $cpu in
+				  *BCM4710*)
+					if [ -d /sys/bus/ide ]; then
+						H_PLATFORM="wl-hdd"
+					fi
+					;;
+				esac
+				;;
+			esac
+			;;
+		esac
+		;;
+	esac
 
-if [ "$H_OS" = "Linux" ]; then
-  if echo "$H_MACHINE" | grep -q "i\i?86" ; then
-    H_PLATFORM="generic-pc"
-  else
-    if cat /proc/cpuinfo | grep -q "Atheros AR2315" ; then
-      if [ -d /sys/bus/usb ]; then
-        H_PLATFORM="fonera-2"
-      else
-        H_PLATFORM="fonera-1"
-      fi
-    fi
-  fi
-fi
+	[ -n "$H_PLATFORM" ] || H_PLATFORM="unknown"
+}
+
+h_hook_register_handler on_app_starting h_platform_detect
