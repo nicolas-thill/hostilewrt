@@ -100,10 +100,7 @@ H_AP_DHCP_MAX="10.69.69.19"
 H_AP_DHCP_LEASE_TIME="1h"
 H_AP_ESSID="LoveWRT"
 
-H_WIFI_IF=wifi0
-H_AP_IF=ath0
-H_STA_IF=ath1
-H_MON_IF=ath2
+H_WIFI_IF=auto
 
 h_get_op_modes() {
 	local ifs
