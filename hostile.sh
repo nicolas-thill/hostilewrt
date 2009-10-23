@@ -24,7 +24,8 @@ Options:
 	-R,--run-dir DIR      use the specified run directory
 	                      (for temporary files storage)
 
-	-v,--verbose          be verbose (show what is being done)
+	-v,--verbose          be verbose (use multiple time to increase
+	                      verbosity level)
 
 	-V,--version          display program version and exit
 	-h,--help             display program usage and exit
@@ -79,6 +80,8 @@ else
 	H_PID_F=$H_MY_D/hostile.pid
 	H_RUN_D=$H_MY_D/hostile-run.d
 fi
+
+H_OPT_VERBOSE=0
 
 H_OP_MODES="ap,sta,wep_attack,wep_bruteforce,wpa_bruteforce"
 
@@ -144,7 +147,7 @@ h_get_options() {
 				H_OPT_RUN_D=$1
 				;;
 			-v|--verbose)
-				H_OPT_VERBOSE=1
+				H_OPT_VERBOSE=$(($H_OPT_VERBOSE + 1))
 				;;
 			-h|--help)
 				h_usage
