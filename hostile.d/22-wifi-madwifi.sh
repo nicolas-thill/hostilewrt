@@ -43,10 +43,14 @@ h_wifi_madwifi_cleanup() {
 	}
 }
 
-[ -d /proc/sys/dev/ath ] && {
-	[ "$H_WIFI_IF" = "auto" -a -d /proc/sys/dev/wifi0 ] \
-		&& H_WIFI_IF=wifi0
+h_wifi_madwifi_detect() {
+	[ -e /proc/sys/dev/ath ] && {
+		[ "$H_WIFI_IF" = "auto" -a -e /proc/sys/dev/wifi0 ] \
+			&& H_WIFI_IF=wifi0
 		
-	h_hook_register_handler on_wifi_startup h_wifi_madwifi_startup
-	h_hook_register_handler on_wifi_cleanup h_wifi_madwifi_cleanup
+		h_hook_register_handler on_wifi_startup h_wifi_madwifi_startup
+		h_hook_register_handler on_wifi_cleanup h_wifi_madwifi_cleanup
+	}
 }
+
+h_hook_register_handler on_app_starting h_wifi_madwifi_detect
