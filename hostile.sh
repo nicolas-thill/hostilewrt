@@ -882,7 +882,7 @@ h_wpa_bruteforce_try() {
 	local country
 	local dicts
 	local words
-	local RC=1
+	local RC
 
 	clients=$(h_csv_get_network_sta $H_CUR_CSV_F $H_CUR_BSSID | grep -iv $H_MON_MAC)
 	if [ -n "$clients" ]; then
@@ -897,6 +897,8 @@ h_wpa_bruteforce_try() {
 
 	#country=$(get_country_from_ssid $H_CUR_ESSID)
 	country="fr"	
+
+	RC=1
 	if h_wpa_wait_for_hs; then
 		h_log "BF can start \o/ :)"
 		dicts=${H_LIB_D}/dict/${country}-wpa-???.dict
