@@ -146,3 +146,9 @@ h_kis_get_network_max_rate() {
 	h_kis_get $F | grep "^$N;" | awk -F\; '{ print $10; }' | awk -F. '{ print $1; }'
 }
 
+h_check_aircrack_version() {
+	if test `airodump-ng --help | grep Airodump-ng | cut -d ' ' -f 6 | cut -c 2-10` -lt 1513 ; 
+	then 
+		h_log "You are using a release of aircrack-ng prior to r1513... this is probably not going to work"
+	fi
+}

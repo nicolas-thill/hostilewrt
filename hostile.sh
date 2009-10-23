@@ -205,10 +205,6 @@ h_detect_small_storage() {
 
 h_startup() {
 	H_TIME_START=$(h_now)
-	if test `airodump-ng --help | grep Airodump-ng | cut -d ' ' -f 6 | cut -c 2-10` -lt 1513 ; 
-	then 
-		h_log "You are using a release of aircrack-ng prior to r1513... this is probably not going to work"
-	fi
 	[ -n "$H_OPT_CONFIG_F" ] \
 		&& H_CONFIG_F=$H_OPT_CONFIG_F
 	[ -r $H_CONFIG_F ] \
