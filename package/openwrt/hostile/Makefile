@@ -8,7 +8,7 @@
 include $(TOPDIR)/rules.mk
 
 PKG_NAME:=hostile
-PKG_REV:=72
+PKG_REV:=91
 PKG_VERSION:=r$(PKG_REV)
 PKG_RELEASE:=1
 
@@ -40,8 +40,6 @@ define Package/hostile/conffiles
 endef
 
 define Package/hostile/install
-	$(INSTALL_DIR) $(1)/etc
-	$(INSTALL_DATA) $(PKG_BUILD_DIR)/hostile.conf $(1)/etc/
 	$(INSTALL_DIR) $(1)/usr/bin
 	$(INSTALL_BIN) $(PKG_BUILD_DIR)/hostile.sh $(1)/usr/bin/hostile
 	$(INSTALL_DIR) $(1)/usr/lib/hostile
@@ -50,6 +48,13 @@ define Package/hostile/install
 	$(INSTALL_DATA) $(PKG_BUILD_DIR)/hostile.d/dict/*.dict $(1)/usr/lib/hostile/dict/
 	$(INSTALL_DIR) $(1)/usr/lib/hostile/ssid-to-wordlist
 	$(INSTALL_DATA) $(PKG_BUILD_DIR)/hostile.d/ssid-to-wordlist/*.ssid $(1)/usr/lib/hostile/ssid-to-wordlist/
+	$(INSTALL_DIR) $(1)/etc
+	$(INSTALL_DATA) $(PKG_BUILD_DIR)/hostile.conf $(1)/etc/
+	$(SED) 's|^\(H_LIB_D\)=.*$$$$|\1=/usr/lib/hostile|' \
+	    -e 's|^\(H_LOG_F\)=.*$$$$|\1=/var/log/hostile.log|' \
+	    -e 's|^\(H_PID_F\)=.*$$$$|\1=/var/run/hostile.pid|' \
+	    -e 's|^\(H_RUN_D\)=.*$$$$|\1=/var/run/hostile|' \
+		$(1)/etc/hostile.conf
 	$(INSTALL_DIR) $(1)/etc/init.d
 	$(INSTALL_BIN) ./files/hostile.init $(1)/etc/init.d/hostile
 endef
