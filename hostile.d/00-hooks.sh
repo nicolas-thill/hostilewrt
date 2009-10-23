@@ -40,6 +40,6 @@ h_hook_call_handlers() {
 	hook_var="H_HOOK_$hook"
 	eval "handlers=\"\${$hook_var}\""
 	for handler in $handlers; do
-		$handler $args || return
+		$handler $args # || return
 	done
 }
