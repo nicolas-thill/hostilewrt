@@ -221,7 +221,6 @@ h_startup() {
 	then 
 		h_log "You are using a release of aircrack-ng prior to r1513... this is probably not going to work"
 	fi
-	h_detect_small_storage
 	[ -n "$H_OPT_CONFIG_F" ] \
 		&& H_CONFIG_F=$H_OPT_CONFIG_F
 	[ -r $H_CONFIG_F ] \
@@ -259,6 +258,7 @@ h_startup() {
 		|| h_error "can't use tmp directory '$H_TMP_D'"
 
 	h_get_op_modes
+	h_detect_small_storage
 
 	for M in $H_LIB_D/[0-9][0-9]-*.sh; do
 		. $M
