@@ -57,6 +57,8 @@ define Package/hostile/install
 		$(1)/etc/hostile.conf
 	$(INSTALL_DIR) $(1)/etc/init.d
 	$(INSTALL_BIN) ./files/hostile.init $(1)/etc/init.d/hostile
+	$(INSTALL_DIR) $(1)/www/cgi-bin
+	$(INSTALL_BIN) ./files/hostile.cgi $(1)/www/cgi-bin/hostile
 endef
 
 $(eval $(call BuildPackage,hostile))
