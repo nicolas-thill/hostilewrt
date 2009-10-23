@@ -222,7 +222,6 @@ h_startup() {
 		h_log "You are using a release of aircrack-ng prior to r1513... this is probably not going to work"
 	fi
 	h_detect_small_storage
-	[ "$OSTYPE" = "linux-gnu" ] && h_setup_linux || h_setup_wrt
 	[ -n "$H_OPT_CONFIG_F" ] \
 		&& H_CONFIG_F=$H_OPT_CONFIG_F
 	[ -r $H_CONFIG_F ] \
