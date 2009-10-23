@@ -184,18 +184,6 @@ h_log() {
 	echo "$H_ME [$time_str]: $@" >>$H_LOG_F
 }
 
-h_on_app_start() {
-	h_log "starting"
-	h_log "using config file: $H_CONFIG_F"
-	h_log "using lib directory: $H_LIB_D"
-	h_log "using run directory: $H_RUN_D"
-	h_log "using tmp directory: $H_TMP_D"
-}
-
-h_on_app_end() {
-	h_log "ended"
-}
-
 h_detect_small_storage() {
 	local flag_big
 	flag_big=0
@@ -261,10 +249,13 @@ h_startup() {
 		. $M
 	done
 
-	h_hook_register_handler on_app_starting h_on_app_start
-	h_hook_register_handler on_app_ended h_on_app_end
-
 	trap h_abort INT TERM
+
+	h_log "starting"
+	h_log "using config file: $H_CONFIG_F"
+	h_log "using lib directory: $H_LIB_D"
+	h_log "using run directory: $H_RUN_D"
+	h_log "using tmp directory: $H_TMP_D"
 
 	h_hook_call_handlers on_app_starting
 	h_hook_call_handlers on_wifi_startup
@@ -280,6 +271,8 @@ h_cleanup() {
 	sleep 1
 	h_hook_call_handlers on_wifi_cleanup
 	h_hook_call_handlers on_app_ended
+
+	h_log "ended"
 }
 
 h_abort() {
