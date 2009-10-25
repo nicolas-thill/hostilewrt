@@ -862,9 +862,23 @@ h_wpa_dict_crack() {
 }
 
 h_wpa_wait_for_hs() {
-	h_log 1 "waiting for WPA handshake"
-	sleep $H_REFRESH_DELAY
-	return 0
+	local time
+	local time_start
+	local time_elapsed
+	local wpa_hs_f
+
+	h_log 1 "waiting WPA handshake for $H_INJECTION_TIME_LIMIT seconds"
+	time_start=$(h_now)
+	wpa_hs_f=$(echo $H_CUR_CSV_F | sed -e 's,\.csv,\.wpa_hs,')
+	while [ 1 ]; do
+		sleep $H_REFRESH_DELAY
+		time=$(h_now)
+		time_elapsed=$(($time - $time_start))
+		[ $time_elapsed -ge $H_INJECTION_TIME_LIMIT ] && break
+		[ -f $wpa_hs_f ] && return 0
+	done
+	h_log 1 "no WPA handshake captured"
+	return 1
 }
 
 h_wpa_key_found() {
@@ -916,9 +930,9 @@ h_wpa_bruteforce_try() {
 				break
 			fi
 		done
-	fi
-	if [ $RC -gt 0 ]; then
-		h_log 1 "BF failed"
+		if [ $RC -gt 0 ]; then
+			h_log 1 "BF failed"
+		fi
 	fi
 
 	h_auth_stop
@@ -936,8 +950,9 @@ h_wpa_bruteforce() {
 	
 	h_hw_prepare
 	
-	H_CUR_CAP_FEXT="cap"
-	h_capture_start h_capture --write $H_CUR_BASE_FNAME --bssid $H_CUR_BSSID --channel $H_CUR_CHANNEL --output-format=pcap,csv
+	h_log 1 "monitoring AP traffic for $H_MONITOR_TIME_LIMIT seconds"
+	H_CUR_CAP_FEXT="ivs"
+	h_capture_start h_capture --write $H_CUR_BASE_FNAME --bssid $H_CUR_BSSID --channel $H_CUR_CHANNEL --output-format=ivs,csv
 
 	sleep $H_MONITOR_TIME_LIMIT
 
