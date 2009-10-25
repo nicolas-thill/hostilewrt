@@ -431,9 +431,11 @@ h_monitor_all() {
 	H_NET_OPEN_F=ALL-OPEN.txt
 	H_NET_WEP_F=ALL-WEP.txt
 	H_NET_WPA_F=ALL-WPA.txt
+	H_NET_ESSIDS_F=ALL-ESSIDS.txt
 	h_kis_get_networks_by_enc $H_ALL_KIS_F "O" >$H_NET_OPEN_F
 	h_kis_get_networks_by_enc $H_ALL_KIS_F "WEP" >$H_NET_WEP_F
 	h_kis_get_networks_by_enc $H_ALL_KIS_F "WPA" >$H_NET_WPA_F
+	h_kis_get_essids $H_ALL_KIS_F >$H_NET_ESSIDS_F
 
 	n_open=$(wc -l <$H_NET_OPEN_F)
 	n_wep=$(wc -l <$H_NET_WEP_F)
