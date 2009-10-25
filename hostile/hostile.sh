@@ -476,7 +476,7 @@ h_wep_wait_for_iv() {
 	local time_elapsed
 
 	iv_min=$1
-	h_log 1 "waiting for $iv_min IVs"
+	h_log 1 "waiting $iv_min IVs for $H_INJECTION_TIME_LIMIT seconds"
 	time_start=$(h_now)
 	while [ 1 ]; do
 		sleep $H_REFRESH_DELAY
@@ -487,6 +487,7 @@ h_wep_wait_for_iv() {
 		h_log 1 "got $iv IVs so far"
 		[ $iv -ge $iv_min ] && return 0
 	done
+	h_log 1 "not enough IVs captured"
 	return 1
 }
 
@@ -634,9 +635,9 @@ h_wep_bruteforce_try() {
 				fi
 			done
 		done
-	fi
-	if [ $RC -gt 0 ]; then
-		h_log 1 "BF failed"
+		if [ $RC -gt 0 ]; then
+			h_log 1 "BF failed"
+		fi
 	fi
 
 	h_auth_stop
@@ -793,7 +794,7 @@ h_wep_bruteforce() {
 	
 	h_hw_prepare
 	
-	h_log 1 "monitoring  traffic for $H_MONITOR_TIME_LIMIT seconds"
+	h_log 1 "monitoring AP traffic for $H_MONITOR_TIME_LIMIT seconds"
 	if [ $H_CAPTURE_IV_ONLY -gt 0 ]; then
 		H_CUR_CAP_FEXT="ivs"
 		capture_options="--output-format=ivs,csv"
