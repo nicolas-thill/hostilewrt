@@ -3,6 +3,7 @@
 H_ME=${0##*/}
 H_MY_D=${0%/*}
 H_MY_D=$(cd $H_MY_D; pwd)
+H_MY_WD=$(pwd)
 H_MY_PID=$$
 H_VERSION="0.4.0"
 
@@ -58,28 +59,6 @@ h_error() {
 	echo "$H_ME: $@"
 	exit 1
 }
-
-if [ -f /etc/hostile.conf ]; then
-	H_CONFIG_F=/etc/hostile.conf
-	H_LIB_D=/usr/lib/hostile
-	H_LOG_F=/var/log/hostile.log
-	H_PID_F=/var/run/hostile.pid
-	H_RUN_D=/var/run/hostile
-elif [ -f /mnt/usbdrive/hostile.conf ]; then
-	H_CONFIG_F=/mnt/usbdrive/hostile.conf
-	H_LIB_D=/mnt/usbdrive/hostile.d
-	H_LOG_F=/mnt/usbdrive/hostile.log
-	H_PID_F=/mnt/usbdrive/hostile.pid
-	H_RUN_D=/mnt/usbdrive/hostile-run.d
-else
-	if [ -f $H_MY_D/hostile.conf ]; then
-		H_CONFIG_F=$H_MY_D/hostile.conf
-	fi
-	H_LIB_D=$H_MY_D/hostile.d
-	H_LOG_F=$H_MY_D/hostile.log
-	H_PID_F=$H_MY_D/hostile.pid
-	H_RUN_D=$H_MY_D/hostile-run.d
-fi
 
 H_OPT_VERBOSE=0
 
@@ -199,11 +178,19 @@ h_detect_small_storage() {
 
 h_startup() {
 	H_TIME_START=$(h_now)
-	[ -n "$H_OPT_CONFIG_F" ] \
-		&& H_CONFIG_F=$H_OPT_CONFIG_F
+	if [ -n "$H_OPT_CONFIG_F" ]; then
+		H_CONFIG_F=$H_OPT_CONFIG_F
+	elif [ -f /etc/hostile.conf ]; then
+		H_CONFIG_F=/etc/hostile.conf
+	elif [ -f $H_MY_D/hostile.conf ]; then
+		H_CONFIG_F=$H_MY_D/hostile.conf
+	else
+		h_error "can't find any config file, use a '--config-file' option"
+	fi
 	[ -r $H_CONFIG_F ] \
 		&& . $H_CONFIG_F \
 		|| h_error "can't read config file '$H_CONFIG_F'"
+
 	[ -n "$H_OPT_LIB_D" ] \
 		&& H_LIB_D=$H_OPT_LIB_D
 	[ -n "$H_OPT_LOG_F" ] \
@@ -212,36 +199,53 @@ h_startup() {
 		&& H_PID_F=$H_OPT_PID_F
 	[ -n "$H_OPT_RUN_D" ] \
 		&& H_RUN_D=$H_OPT_RUN_D
+
 	[ -n "$H_LIB_D" ] \
 		|| h_error "can't use library directory, 'H_LIB_D' not set"
+	cd $H_LIB_D >/dev/null 2>&1 \
+		|| h_error "can't use lib directory '$H_LIB_D'"
+	H_LIB_D=$(pwd)
+	cd $H_MY_WD
+
 	[ -n "$H_LOG_F" ] \
 		|| h_error "can't use log file, 'H_LOG_F' not set"
-	[ -n "$H_PID_F" ] \
-		|| h_error "can't use pid file, 'H_PID_F' not set"
-	[ -n "$H_RUN_D" ] \
-		|| h_error "can't use run directory, 'H_RUN_D' not set"
 	touch $H_LOG_F >/dev/null 2>&1 \
 		|| h_error "can't create log file '$H_LOG_F'"
+	h_log_f=${H_LOG_F##*/}
+	h_log_d=${H_LOG_F%/*}
+	cd $h_log_d >/dev/null 2>&1 \
+		|| h_error "can't use log file directory '$h_log_d'"
+	h_log_d=$(pwd)
+	H_LOG_F=$h_log_d/$h_log_f
+	cd $H_MY_WD
+	
+	[ -n "$H_PID_F" ] \
+		|| h_error "can't use pid file, 'H_PID_F' not set"
 	touch $H_PID_F >/dev/null 2>&1 \
 		|| h_error "can't create pid file '$H_PID_F'"
 	echo "$H_MY_PID" > $H_PID_F
-	cd $H_LIB_D >/dev/null 2>&1 \
-		|| h_error "can't use lib directory '$H_LIB_D'"
-	[ -d $H_RUN_D ] \
-		|| mkdir -p $H_RUN_D >/dev/null 2>&1 \
+	
+	[ -n "$H_RUN_D" ] \
+		|| h_error "can't use run directory, 'H_RUN_D' not set"
+	mkdir -p $H_RUN_D >/dev/null 2>&1 \
 		|| h_error "can't create run directory '$H_RUN_D'"
 	cd $H_RUN_D >/dev/null 2>&1 \
 		|| h_error "can't use run directory '$H_RUN_D'"
-	H_WEP_F=$H_RUN_D/hostile-wep.txt
-	touch $H_WEP_F >/dev/null 2>&1 \
-		|| h_error "can't create wep key file '$H_WEP_F'"
-	H_WPA_F=$H_RUN_D/hostile-wpa.txt
-	touch $H_WPA_F >/dev/null 2>&1 \
-		|| h_error "can't create wpa key file '$H_WPA_F'"
+	H_RUN_D=$(pwd)
+
 	H_TMP_D=$(mktemp -d $H_RUN_D/hostile-XXXXXX) \
 		|| h_error "can't create tmp directory in '$H_RUN_D'"
 	cd $H_TMP_D >/dev/null 2>&1 \
 		|| h_error "can't use tmp directory '$H_TMP_D'"
+	H_TMP_D=$(pwd)
+	
+	H_WEP_F=$H_RUN_D/hostile-wep.txt
+	touch $H_WEP_F >/dev/null 2>&1 \
+		|| h_error "can't create wep key file '$H_WEP_F'"
+
+	H_WPA_F=$H_RUN_D/hostile-wpa.txt
+	touch $H_WPA_F >/dev/null 2>&1 \
+		|| h_error "can't create wpa key file '$H_WPA_F'"
 
 	h_log 0 "starting"
 	h_log 1 "using config file: $H_CONFIG_F"
