@@ -257,6 +257,7 @@ h_startup() {
 	h_detect_small_storage
 
 	for M in $H_LIB_D/[0-9][0-9]-*.sh; do
+		h_log 1 "loading module: $M"
 		. $M
 	done
 
