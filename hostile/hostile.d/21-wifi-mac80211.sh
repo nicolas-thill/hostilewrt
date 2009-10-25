@@ -35,13 +35,17 @@ h_wifi_mac80211_cleanup() {
 	sleep 1
 	iw dev $H_MON_IF del
 
-	ifconfig $H_STA_IF down
-	sleep 1
-	iw dev $H_STA_IF del
+	[ "$H_OP_MODE_sta" = "1" ] && {
+		ifconfig $H_STA_IF down
+		sleep 1
+		iw dev $H_STA_IF del
+	}
 
-	ifconfig $H_AP_IF down
-	sleep 1
-	iw dev $H_AP_IF del
+	[ "$H_OP_MODE_ap" = "1" ] && {
+		ifconfig $H_AP_IF down
+		sleep 1
+		iw dev $H_AP_IF del
+	}
 
 #	[ -n "$H_MAC_OLD" ] && {
 #		h_mac_set $H_WIFI_IF $H_MAC_OLD
