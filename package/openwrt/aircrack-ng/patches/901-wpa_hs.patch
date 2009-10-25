@@ -1,0 +1,42 @@
+--- a/src/airodump-ng.c
++++ b/src/airodump-ng.c
+@@ -308,6 +308,30 @@ int check_shared_key(unsigned char *h802
+     return 0;
+ }
+ 
++int output_wpa_hs( struct WPA_hdsk *wpa_hs )
++{
++    char ofn[1024];
++    FILE *f_wpa_hs;
++
++    snprintf( ofn, sizeof( ofn ) - 1, "%s-%02d.%s",
++        G.prefix, G.f_index, "wpa_hs" );
++
++    f_wpa_hs = fopen( ofn, "wb+" );
++    if( f_wpa_hs == NULL )
++    {
++        perror( "error opening WPA handshake file" );
++        return( 1 );
++    }
++    if( fwrite( wpa_hs, 1, sizeof(struct WPA_hdsk), f_wpa_hs ) != (size_t) sizeof(struct WPA_hdsk) )
++    {
++        perror( "error writing WPA handshake" );
++        return( 1 );
++    }
++    fclose( f_wpa_hs );
++
++    return( 0 );
++}
++
+ char usage[] =
+ 
+ "\n"
+@@ -1935,6 +1959,8 @@ skip_probe:
+                         perror( "fwrite(IV wpa_hdsk) failed" );
+                         return( 1 );
+                     }
++
++                    output_wpa_hs( &(st_cur->wpa) );
+                 }
+             }
+         }
