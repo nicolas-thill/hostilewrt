@@ -64,8 +64,6 @@ H_OPT_VERBOSE=0
 
 H_REFRESH_DELAY=20
 
-H_WIFI_IF=auto
-
 h_get_op_modes() {
 	local ifs
 	ifs=$IFS
