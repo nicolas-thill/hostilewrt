@@ -11,22 +11,22 @@ h_wifi_mac80211_startup() {
 #		h_mac_set $H_WIFI_IF $H_WIFI_MAC
 #	}
 	H_WIFI_MAC=$(cat /sys/class/ieee80211/${H_WIFI_IF}/macaddress)
-	h_log "using interface: $H_WIFI_IF, mac address: $H_WIFI_MAC"
+	h_log 1 "using interface: $H_WIFI_IF, mac address: $H_WIFI_MAC"
 
 	[ "$H_OP_MODE_ap" = "1" ] && {
 		iw phy $H_WIFI_IF interface add $H_AP_IF type managed >/dev/null 2>&1 \
-			|| h_log "can't create ap ($H_AP_IF) interface"
+			|| h_log 0 "can't create ap ($H_AP_IF) interface"
 		H_AP_MAC=$(h_mac_get $H_AP_IF)
 	}
 
 	[ "$H_OP_MODE_sta" = "1" ] && {
 		iw phy $H_WIFI_IF interface add $H_STA_IF type managed >/dev/null 2>&1 \
-			|| h_log "can't create sta ($H_STA_IF) interface"
+			|| h_log 0 "can't create sta ($H_STA_IF) interface"
 		H_STA_MAC=$(h_mac_get $H_STA_IF)
 	}
 
 	iw phy $H_WIFI_IF interface add $H_MON_IF type monitor >/dev/null 2>&1 \
-		|| h_log "can't create monitor ($H_MON_IF) interface"
+		|| h_log 0 "can't create monitor ($H_MON_IF) interface"
 	H_MON_MAC=$(h_mac_get $H_MON_IF)
 }
 
