@@ -5,12 +5,12 @@ h_wifi_madwifi_startup() {
 	H_STA_IF=ath1
 	H_MON_IF=ath2
 
-	[ -n "$H_MAC" ] && {
-		H_MAC_OLD=$(h_mac_get $H_WIFI_IF)
-		h_mac_set $H_WIFI_IF $H_MAC
+	[ -n "$H_WIFI_MAC" ] && {
+		H_WIFI_MAC_OLD=$(h_mac_get $H_WIFI_IF)
+		h_mac_set $H_WIFI_IF $H_WIFI_MAC
 	}
-	H_MAC=$(h_mac_get $H_WIFI_IF)
-	h_log "using interface: $H_WIFI_IF, mac address: $H_MAC"
+	H_WIFI_MAC=$(h_mac_get $H_WIFI_IF)
+	h_log "using interface: $H_WIFI_IF, mac address: $H_WIFI_MAC"
 
 	[ "$H_OP_MODE_ap" = "1" ] && {
 		wlanconfig $H_AP_IF create wlandev $H_WIFI_IF wlanmode ap >/dev/null 2>&1 \
@@ -46,8 +46,8 @@ h_wifi_madwifi_cleanup() {
 		wlanconfig $H_AP_IF destroy >/dev/null 2>&1
 	}
 	
-	[ -n "$H_MAC_OLD" ] && {
-		h_mac_set $H_WIFI_IF $H_MAC_OLD
+	[ -n "$H_WIFI_MAC_OLD" ] && {
+		h_mac_set $H_WIFI_IF $H_WIFI_MAC_OLD
 	}
 }
 

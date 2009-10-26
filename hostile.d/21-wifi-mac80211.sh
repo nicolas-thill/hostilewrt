@@ -6,12 +6,12 @@ h_wifi_mac80211_startup() {
 	H_MON_IF=wlan2
 
 # XXX: fix mac spoofing with mac80211
-#	[ -n "$H_MAC" ] && {
-#		H_MAC_OLD=$(h_mac_get $H_WIFI_IF)
-#		h_mac_set $H_WIFI_IF $H_MAC
+#	[ -n "$H_WIFI_MAC" ] && {
+#		H_WIFI_MAC_OLD=$(h_mac_get $H_WIFI_IF)
+#		h_mac_set $H_WIFI_IF $H_WIFI_MAC
 #	}
-	H_MAC=$(cat /sys/class/ieee80211/${H_WIFI_IF}/macaddress)
-	h_log "using interface: $H_WIFI_IF, mac address: $H_MAC"
+	H_WIFI_MAC=$(cat /sys/class/ieee80211/${H_WIFI_IF}/macaddress)
+	h_log "using interface: $H_WIFI_IF, mac address: $H_WIFI_MAC"
 
 	[ "$H_OP_MODE_ap" = "1" ] && {
 		iw phy $H_WIFI_IF interface add $H_AP_IF type managed >/dev/null 2>&1 \
@@ -47,8 +47,8 @@ h_wifi_mac80211_cleanup() {
 		iw dev $H_AP_IF del
 	}
 
-#	[ -n "$H_MAC_OLD" ] && {
-#		h_mac_set $H_WIFI_IF $H_MAC_OLD
+#	[ -n "$H_WIFI_MAC_OLD" ] && {
+#		h_mac_set $H_WIFI_IF $H_WIFI_MAC_OLD
 #	}
 }
 
