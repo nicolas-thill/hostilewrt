@@ -31,6 +31,8 @@ h_platform_detect() {
 				  *BCM4710*)
 					if [ -d /sys/bus/ide ]; then
 						H_PLATFORM="wl-hdd"
+					elif [ -d /sys/bus/usb ]; then
+						H_PLATFORM="wl-500g"
 					fi
 					;;
 				esac
