@@ -8,7 +8,7 @@ h_platform_detect() {
 	H_OS=$(uname -s)
 	case $H_OS in
 	  *Linux*)
-		cpu=$(cat /proc/cpuinfo |grep "cpu model" | cut -d: -f2)
+		cpu=$(cat /proc/cpuinfo |grep "system type" | cut -d: -f2)
 		case $H_MACHINE in
 		  i?86)
 			H_PLATFORM="generic-pc"
@@ -28,7 +28,7 @@ h_platform_detect() {
 				;;
 			  *Broadcom*)
 				case $cpu in
-				  *BCM4710*)
+				  *BCM47XX*)
 					if [ -d /sys/bus/ide ]; then
 						H_PLATFORM="wl-hdd"
 					elif [ -d /sys/bus/usb ]; then
@@ -43,7 +43,12 @@ h_platform_detect() {
 		;;
 	esac
 
-	[ -n "$H_PLATFORM" ] || H_PLATFORM="unknown"
+	if [ -n "$H_PLATFORM" ]; then
+		h_log 1 "detected platform: '$H_PLATFORM'"
+	else
+		h_log 1 "unable to guess current platform, assuming 'unknown'"
+		H_PLATFORM="unknown"
+	fi
 }
 
 h_hook_register_handler on_app_starting h_platform_detect
