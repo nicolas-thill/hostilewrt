@@ -18,6 +18,9 @@ Options:
 	-b,--bssid BSSID      restrict exploration to the specified BSSID
 	-c,--channel CHANNEL  restrict exploration to the specified channel
 
+	-E,--exclude FILE     exclude networks using patterns from FILE
+	-I,--include FILE     include networks using patterns from FILE
+
 	-l,--log-file FILE    log activity to the specified file
 	-L,--lib-dir DIR      use the specified lib directory
 	                      (for helper functions & scripts)
@@ -88,6 +91,14 @@ h_get_options() {
 			-C|--config-file)
 				shift
 				H_OPT_CONFIG_F=$1
+				;;
+			-E|--exclude)
+				shift
+				H_OPT_EXCL_F="${H_OPT_EXCL_F}${H_OPT_EXCL_F:+ }$1"
+				;;
+			-I|--include)
+				shift
+				H_OPT_INCL_F="${H_OPT_INCL_F}${H_OPT_INCL_F:+ }$1"
 				;;
 			-l|--log-file)
 				shift
@@ -221,6 +232,10 @@ h_startup() {
 		&& . $H_CONFIG_F \
 		|| h_error "can't read config file '$H_CONFIG_F'"
 
+	[ -n "$H_OPT_EXCL_F" ] \
+		&& H_EXCL_F=$H_OPT_EXCL_F
+	[ -n "$H_OPT_INCL_F" ] \
+		&& H_INCL_F=$H_OPT_INCL_F
 	[ -n "$H_OPT_LIB_D" ] \
 		&& H_LIB_D=$H_OPT_LIB_D
 	[ -n "$H_OPT_LOG_F" ] \
@@ -229,6 +244,10 @@ h_startup() {
 		&& H_PID_F=$H_OPT_PID_F
 	[ -n "$H_OPT_RUN_D" ] \
 		&& H_RUN_D=$H_OPT_RUN_D
+
+	H_EXCL_F=$(h_rel2abs $H_EXCL_F)
+
+	H_INCL_F=$(h_rel2abs $H_INCL_F)
 
 	[ -n "$H_LIB_D" ] \
 		|| h_error "can't use library directory, 'H_LIB_D' not set"
@@ -270,7 +289,12 @@ h_startup() {
 	h_log 1 "using lib directory: $H_LIB_D"
 	h_log 1 "using run directory: $H_RUN_D"
 	h_log 1 "using tmp directory: $H_TMP_D"
-	echo "$H_MY_PID" > $H_PID_F
+	for f in $H_EXCL_F; do
+		h_log 1 "using exclude file: $f"
+	done
+	for f in $H_INCL_F; do
+		h_log 1 "using include file: $f"
+	done
 
 	h_get_op_modes
 	h_detect_small_storage
@@ -280,6 +304,7 @@ h_startup() {
 		. $M
 	done
 
+	echo "$H_MY_PID" > $H_PID_F
 	trap h_abort INT TERM
 
 	h_hook_call_handlers on_app_starting
@@ -473,6 +498,44 @@ h_net_switch() {
 	H_CUR_BASE_FNAME=$(h_get_sane_fname $H_CUR_BSSID)
 }
 
+h_net_allowed_cb() {
+	local value
+	local pattern
+	value="" # $1 is ignored, will be generated depending on the pattern
+	pattern="$2"
+	# if the pattern contains BSSID="...", then use the current BSSID for matching
+	echo "$pattern" | grep -q 'BSSID=".*"' \
+		&& value="BSSID=\"${H_CUR_BSSID}\""
+	# if the pattern contains CHANNEL="...", then use the current CHANNEL for matching
+	echo "$pattern" | grep -q 'CHANNEL=".*"' \
+		&& value="${value}${value:+\s+}CHANNEL=\"${H_CUR_CHANNEL}\""
+	# if the pattern contains ESSID="...", then use the current ESSID for matching
+	echo "$pattern" | grep -q 'ESSID=".*"' \
+		&& value="${value}${value:+\s+}ESSID=\"${H_CUR_ESSID}\""
+	h_regex_match "$value" "$pattern"
+}
+
+h_net_allowed() {
+	if [ -n "$H_EXCL_F" ]; then
+		for f in $H_EXCL_F; do
+			if cat $f | grep -v "^#" | h_regex_loop_match "" h_net_allowed_cb; then
+				h_log 2 "excluded network (bssid='$H_CUR_BSSID', channel=$H_CUR_CHANNEL, essid='$H_CUR_ESSID'), found in '$f'"
+				return 1
+			fi
+		done
+	fi
+	if [ -n "$H_INCL_F" ]; then
+		for f in $H_INCL_F; do
+			if cat $f | grep -v "^#" | h_regex_loop_match "" h_net_allowed_cb; then
+				h_log 2 "included network (bssid='$H_CUR_BSSID', channel=$H_CUR_CHANNEL, essid='$H_CUR_ESSID'), found in '$f'"
+				return 0
+			fi
+		done
+		return 1
+	fi
+	return 0
+}
+
 
 #
 # handle open networks
@@ -482,6 +545,7 @@ h_open_try_one_network() {
 	local N
 	N=$1
 	h_net_switch $N
+	h_net_allowed || return 0
 	h_log 1 "found open network: bssid='$H_CUR_BSSID', channel=$H_CUR_CHANNEL, essid='$H_CUR_ESSID'"
 }
 
@@ -852,6 +916,7 @@ h_wep_try_one_network() {
 	local N
 	N=$1
 	h_net_switch $N
+	h_net_allowed || return 0
 
 	if h_wep_key_found; then
 		h_log 1 "skipping known WEP network: bssid=$H_CUR_BSSID, channel=$H_CUR_CHANNEL, essid='$H_CUR_ESSID'"
@@ -994,6 +1059,7 @@ h_wpa_try_one_network() {
 	local N
 	N=$1
 	h_net_switch $N
+	h_net_allowed || return 0
 
 	if h_wpa_key_found; then
 		h_log 1 "skipping known WPA network: bssid=$H_CUR_BSSID, channel=$H_CUR_CHANNEL, essid='$H_CUR_ESSID'"

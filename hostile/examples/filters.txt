@@ -1,0 +1,38 @@
+# {inc/exc}lude filters
+
+# evaluation order
+# 1. if an exclude filter is provided, AP is rejected if match, continue if not
+# 2. if an include filter is provided, AP is accepted if match, rejected if not
+# 3. AP is accepted otherwise
+
+# BSSID="..." CHANNEL="..." ESSID="..."
+# any of theese or a combination of theese, each appearing only once
+# and always in this order :)
+# replace ... by a value or an extended regex of your choice
+
+# {inc/exc}lude this particular AP
+# BSSID="01:02:03:04:05:06"
+
+# {inc/exc}lude all APs from a manufacturer
+# BSSID="00:21:E9:.*"
+
+# {inc/exc}lude all APs on a channel
+# CHANNEL="5"
+
+# {inc/exc}lude all APs on multiple channels
+# CHANNEL="(1|5|11)"
+
+# {inc/exc}lude all APs running a particular network
+# ESSID="ZER0_TELEC0M"
+
+# {inc/exc}lude all APs running those networks
+# ESSID="Deadbox-[0-9a-zA-Z]+"
+
+# {inc/exc}lude all APs from this manufacturer on channel 1
+# BSSID="00:1E:37:.*" CHANNEL="1"
+
+# {inc/exc}lude all APs on channel 11 running this network 
+# CHANNEL="11" ESSID="MerzaouiBox-.*"
+
+# {inc/exc}lude all APs from this manufacturer on channel 11 running this network 
+# BSSID="FE:40:B3:.*" CHANNEL="11" ESSID="NotSoFreeWifi"
