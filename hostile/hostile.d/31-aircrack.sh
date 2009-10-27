@@ -19,6 +19,19 @@
 # 14. ESSID
 # 15. KeyM
 
+#
+# @function
+#  h_csv_get
+# @description
+#  get the line matching a specified AP
+# @arguments
+#  - file
+#    a .csv file
+#  - bssid
+#    the BSSID of the requested AP
+# @returns
+#  the matching line (string) on stdout
+# 
 h_csv_get() {
 	local F
 	local B
@@ -27,6 +40,19 @@ h_csv_get() {
 	cat $F 2>/dev/null | tail -n +3 | grep "^$B,"
 }
 
+#
+# @function
+#  h_csv_get_network_iv_count
+# @description
+#  get the current IV count for the specified AP
+# @arguments
+#  - file
+#    a .csv file
+#  - bssid
+#    the BSSID of the requested AP
+# @returns
+#  the number of IVs (string) or 0 on stdout
+# 
 h_csv_get_network_iv_count() {
 	local F
 	local B
@@ -38,6 +64,19 @@ h_csv_get_network_iv_count() {
 	echo $v
 }
 
+#
+# @function
+#  h_csv_get_network_sta
+# @description
+#  get client stations for the specified bssid
+# @arguments
+#  - file
+#    a .csv file
+#  - bssid
+#    the bssid of the requested AP
+# @returns
+#  client hw adresses (multi-line string) on stdout
+# 
 h_csv_get_network_sta() {
 	local F
 	local B
@@ -88,18 +127,56 @@ h_csv_get_network_sta() {
 # 37. IPType
 # 38. IP
 
+#
+# @function
+#  h_kis_get
+# @description
+#  get interesting lines (network informations)
+# @arguments
+#  - file
+#    a .kismet.csv file
+# @returns
+#  network informations (multi-line string) on stdout
+#  format: see above
+# 
 h_kis_get() {
 	local F
 	F=$1
 	cat $F 2>/dev/null | tail -n +2 | grep "^.*;infra"
 }
 
+#
+# @function
+#  h_kis_get_networks
+# @description
+#  get basic information for all networks
+# @arguments
+#  - file
+#    a .kismet.csv file
+# @returns
+#  basic network informations (multi-line string) on stdout
+#  format: signal;encryption;index
+#  sorted by best signal first
+# 
 h_kis_get_networks() {
 	local F
 	F=$1
 	h_kis_get $F | awk -F\; '{ print $22 "\;" $8 "\;" $1; }' | sort -n -r
 }
 
+#
+# @function
+#  h_kis_get_networks_by_enc
+# @description
+#  get index of networks matching the specified encryption 
+# @arguments
+#  - file
+#    a .kismet.csv file
+#  - encryption
+#    the requested encryption (OPN, WEP or WPA)
+# @returns
+#  network index (multi-line string) on stdout
+# 
 h_kis_get_networks_by_enc() {
 	local F
 	local E
@@ -108,12 +185,37 @@ h_kis_get_networks_by_enc() {
 	h_kis_get_networks $F | grep "^.*;$E" | awk -F\; '{ print $3; }'
 }
 
+#
+# @function
+#  h_kis_get_essids
+# @description
+#  get all network ESSIDs 
+# @arguments
+#  - file
+#    a .kismet.csv file
+# @returns
+#  network ESSID (multi-line string) on stdout
+#  sorted, with dupe removed
+# 
 h_kis_get_essids() {
 	local F
 	F=$1
 	h_kis_get $F | awk -F\; '{ print $3; }' | sort -u | grep -v "^$"
 }
 
+#
+# @function
+#  h_kis_get_network_bssid
+# @description
+#  get the BSSID of the specified network
+# @arguments
+#  - file
+#    a .kismet.csv file
+#  - index
+#    the index of the requested network
+# @returns
+#  network BSSID (string) on stdout
+# 
 h_kis_get_network_bssid() {
 	local F
 	local N
@@ -122,6 +224,19 @@ h_kis_get_network_bssid() {
 	h_kis_get $F | grep "^$N;" | awk -F\; '{ print $4; }'
 }
 
+#
+# @function
+#  h_kis_get_network_channel
+# @description
+#  get the channel of the specified network
+# @arguments
+#  - file
+#    a .kismet.csv file
+#  - index
+#    the index of the requested network
+# @returns
+#  network channel (string) on stdout
+# 
 h_kis_get_network_channel() {
 	local F
 	local N
@@ -130,6 +245,19 @@ h_kis_get_network_channel() {
 	h_kis_get $F | grep "^$N;" | awk -F\; '{ print $6; }'
 }
 
+#
+# @function
+#  h_kis_get_network_essid
+# @description
+#  get the ESSID of the specified network
+# @arguments
+#  - file
+#    a .kismet.csv file
+#  - index
+#    the index of the requested network
+# @returns
+#  network ESSID (string) on stdout
+# 
 h_kis_get_network_essid() {
 	local F
 	local N
@@ -138,6 +266,19 @@ h_kis_get_network_essid() {
 	h_kis_get $F | grep "^$N;" | awk -F\; '{ print $3; }'
 }
 
+#
+# @function
+#  h_kis_get_network_max_rate
+# @description
+#  get the maximum rate of the specified network
+# @arguments
+#  - file
+#    a .kismet.csv file
+#  - index
+#    the index of the requested network
+# @returns
+#  network maximum rate (string) on stdout
+# 
 h_kis_get_network_max_rate() {
 	local F
 	local N
