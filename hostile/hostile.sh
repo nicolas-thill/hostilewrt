@@ -174,6 +174,38 @@ h_detect_small_storage() {
 	fi
 }
 
+#
+# @function
+#  h_rel2abs
+# @description
+#  convert relative path to absolute
+# @arguments
+#  relpath1 relpath2 ... relpathN
+# @returns
+#  string containting absolute path(s) for each argument
+# @examples
+#  abs=$(h_rel2abs "./hostile.d")
+#
+h_rel2abs() {
+	local p
+	local r
+	local d
+	local f
+	local wd
+	r=""
+	wd=$(pwd)
+	for p in $*; do
+		d=${p%/*}
+		f=${p##*/}
+		cd $d >/dev/null 2>&1 \
+			|| h_error "can't use directory '$d' ('$p')"
+		d=$(pwd)
+		cd $wd
+		r="${r}${r:+ }${d}/${f}"
+	done
+	echo "$r"
+}
+
 h_startup() {
 	H_TIME_START=$(h_now)
 	if [ -n "$H_OPT_CONFIG_F" ]; then
@@ -200,42 +232,30 @@ h_startup() {
 
 	[ -n "$H_LIB_D" ] \
 		|| h_error "can't use library directory, 'H_LIB_D' not set"
-	cd $H_LIB_D >/dev/null 2>&1 \
-		|| h_error "can't use lib directory '$H_LIB_D'"
-	H_LIB_D=$(pwd)
-	cd $H_MY_WD
+	H_LIB_D=$(h_rel2abs $H_LIB_D)
 
 	[ -n "$H_LOG_F" ] \
 		|| h_error "can't use log file, 'H_LOG_F' not set"
 	touch $H_LOG_F >/dev/null 2>&1 \
 		|| h_error "can't create log file '$H_LOG_F'"
-	h_log_f=${H_LOG_F##*/}
-	h_log_d=${H_LOG_F%/*}
-	cd $h_log_d >/dev/null 2>&1 \
-		|| h_error "can't use log file directory '$h_log_d'"
-	h_log_d=$(pwd)
-	H_LOG_F=$h_log_d/$h_log_f
-	cd $H_MY_WD
+	H_LOG_F=$(h_rel2abs $H_LOG_F)
 	
 	[ -n "$H_PID_F" ] \
 		|| h_error "can't use pid file, 'H_PID_F' not set"
 	touch $H_PID_F >/dev/null 2>&1 \
 		|| h_error "can't create pid file '$H_PID_F'"
-	echo "$H_MY_PID" > $H_PID_F
+	H_PID_F=$(h_rel2abs $H_PID_F)
 	
 	[ -n "$H_RUN_D" ] \
 		|| h_error "can't use run directory, 'H_RUN_D' not set"
 	mkdir -p $H_RUN_D >/dev/null 2>&1 \
 		|| h_error "can't create run directory '$H_RUN_D'"
-	cd $H_RUN_D >/dev/null 2>&1 \
-		|| h_error "can't use run directory '$H_RUN_D'"
-	H_RUN_D=$(pwd)
+	H_RUN_D=$(h_rel2abs $H_RUN_D)
 
 	H_TMP_D=$(mktemp -d $H_RUN_D/hostile-XXXXXX) \
 		|| h_error "can't create tmp directory in '$H_RUN_D'"
 	cd $H_TMP_D >/dev/null 2>&1 \
 		|| h_error "can't use tmp directory '$H_TMP_D'"
-	H_TMP_D=$(pwd)
 	
 	H_WEP_F=$H_RUN_D/hostile-wep.txt
 	touch $H_WEP_F >/dev/null 2>&1 \
@@ -250,6 +270,7 @@ h_startup() {
 	h_log 1 "using lib directory: $H_LIB_D"
 	h_log 1 "using run directory: $H_RUN_D"
 	h_log 1 "using tmp directory: $H_TMP_D"
+	echo "$H_MY_PID" > $H_PID_F
 
 	h_get_op_modes
 	h_detect_small_storage
