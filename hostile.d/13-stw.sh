@@ -2,7 +2,7 @@
 # WEP Dict size
 # 001 : 5k == 1mn @ 7 tests per seconds
 
-H_STW_D=$H_LIB_D/ssid-to-wordlist
+H_STW_D=$H_LIB_D/ssid
 
 h_stw_get_match_count() {
 	local current_f
