@@ -546,7 +546,7 @@ h_open_try_one_network() {
 	N=$1
 	h_net_switch $N
 	h_net_allowed || return 0
-	h_log 1 "found open network: bssid='$H_CUR_BSSID', channel=$H_CUR_CHANNEL, essid='$H_CUR_ESSID'"
+	h_log 1 "found open network (bssid='$H_CUR_BSSID', channel=$H_CUR_CHANNEL, essid='$H_CUR_ESSID')"
 }
 
 h_open_try_all_networks() {
@@ -919,11 +919,11 @@ h_wep_try_one_network() {
 	h_net_allowed || return 0
 
 	if h_wep_key_found; then
-		h_log 1 "skipping known WEP network: bssid=$H_CUR_BSSID, channel=$H_CUR_CHANNEL, essid='$H_CUR_ESSID'"
+		h_log 1 "skipping known WEP network (bssid='$H_CUR_BSSID', channel=$H_CUR_CHANNEL, essid='$H_CUR_ESSID')"
 		return 0
 	fi
 
-	h_log 1 "trying WEP network: bssid=$H_CUR_BSSID, channel=$H_CUR_CHANNEL, essid='$H_CUR_ESSID'"
+	h_log 1 "trying WEP network (bssid='$H_CUR_BSSID', channel=$H_CUR_CHANNEL, essid='$H_CUR_ESSID')"
 
 	[ "$H_OP_MODE_wep_bruteforce" = "1" ] && h_wep_bruteforce
 	[ "$H_OP_MODE_wep_attack" = "1" ] && h_wep_attack
@@ -1062,11 +1062,11 @@ h_wpa_try_one_network() {
 	h_net_allowed || return 0
 
 	if h_wpa_key_found; then
-		h_log 1 "skipping known WPA network: bssid=$H_CUR_BSSID, channel=$H_CUR_CHANNEL, essid='$H_CUR_ESSID'"
+		h_log 1 "skipping known WPA network (bssid='$H_CUR_BSSID', channel=$H_CUR_CHANNEL, essid='$H_CUR_ESSID')"
 		return 0
 	fi
 
-	h_log 1 "trying WPA network: bssid=$H_CUR_BSSID, channel=$H_CUR_CHANNEL, essid='$H_CUR_ESSID'"
+	h_log 1 "trying WPA network (bssid='$H_CUR_BSSID', channel=$H_CUR_CHANNEL, essid='$H_CUR_ESSID')"
 
 	[ "$H_OP_MODE_wpa_bruteforce" = "1" ] && h_wpa_bruteforce
 }
