@@ -463,20 +463,26 @@ h_monitor_all() {
 }
 
 
+h_net_switch() {
+	local N
+	N=$1
+	H_CUR_BSSID=$(h_kis_get_network_bssid $H_ALL_KIS_F $N)
+	H_CUR_CHANNEL=$(h_kis_get_network_channel $H_ALL_KIS_F $N)
+	H_CUR_ESSID=$(h_kis_get_network_essid $H_ALL_KIS_F $N)
+	H_CUR_RATE=$(h_kis_get_network_max_rate $H_ALLKIS_F $N)
+	H_CUR_BASE_FNAME=$(h_get_sane_fname $H_CUR_BSSID)
+}
+
+
 #
 # handle open networks
 #
 
 h_open_try_one_network() {
 	local N
-	local bssid
-	local channel
-	local essid
 	N=$1
-	bssid=$(h_kis_get_network_bssid $H_ALL_KIS_F $N)
-	channel=$(h_kis_get_network_channel $H_ALL_KIS_F $N)
-	essid=$(h_kis_get_network_essid $H_ALL_KIS_F $N)
-	h_log 1 "found open network: bssid=$bssid, channel=$channel, essid='$essid'"
+	h_net_switch $N
+	h_log 1 "found open network: bssid='$H_CUR_BSSID', channel=$H_CUR_CHANNEL, essid='$H_CUR_ESSID'"
 }
 
 h_open_try_all_networks() {
@@ -844,13 +850,8 @@ h_wep_key_found() {
 
 h_wep_try_one_network() {
 	local N
-
 	N=$1
-	H_CUR_BSSID=$(h_kis_get_network_bssid $H_ALL_KIS_F $N)
-	H_CUR_CHANNEL=$(h_kis_get_network_channel $H_ALL_KIS_F $N)
-	H_CUR_ESSID=$(h_kis_get_network_essid $H_ALL_KIS_F $N)
-	H_CUR_RATE=$(h_kis_get_network_max_rate $H_ALLKIS_F $N)
-	H_CUR_BASE_FNAME=$(h_get_sane_fname $H_CUR_BSSID)
+	h_net_switch $N
 
 	if h_wep_key_found; then
 		h_log 1 "skipping known WEP network: bssid=$H_CUR_BSSID, channel=$H_CUR_CHANNEL, essid='$H_CUR_ESSID'"
@@ -991,13 +992,8 @@ h_wpa_bruteforce() {
 
 h_wpa_try_one_network() {
 	local N
-
 	N=$1
-	H_CUR_BSSID=$(h_kis_get_network_bssid $H_ALL_KIS_F $N)
-	H_CUR_CHANNEL=$(h_kis_get_network_channel $H_ALL_KIS_F $N)
-	H_CUR_ESSID=$(h_kis_get_network_essid $H_ALL_KIS_F $N)
-	H_CUR_RATE=$(h_kis_get_network_max_rate $H_ALLKIS_F $N)
-	H_CUR_BASE_FNAME=$(h_get_sane_fname $H_CUR_BSSID)
+	h_net_switch $N
 
 	if h_wpa_key_found; then
 		h_log 1 "skipping known WPA network: bssid=$H_CUR_BSSID, channel=$H_CUR_CHANNEL, essid='$H_CUR_ESSID'"
