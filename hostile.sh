@@ -170,18 +170,15 @@ h_log() {
 }
 
 h_detect_small_storage() {
-	local flag_big
-	flag_big=0
-	for avail in $(df -k |grep -iv '1K-blocks' |fgrep -v '100%' | awk '{ print $2; }')
-	do
-		# 100000 == 100M, XXX Should move this limit to hostile.conf file?
-		[ $avail -gt 100000 ] && flag_big=1
-	done
-	if [ $flag_big -le 0 ]
-	then
-		export H_SMALL_STORAGE=1
-		h_log 1 "Small or no storage available, avoiding hard-disk needy applications... H_SMALL_STORAGE=$H_SMALL_STORAGE"
-		H_OP_MODE_wep_attack=0
+	local avail
+	
+	avail=$(df -m $H_RUN_D | tail -n +2 | awk '{ print $4; }')
+	if [ -z "$avail" ]; then
+		h_log 1 "unable to guess available storage space"
+		return
+	fi
+	if [ $avail -lt 100 ]; then
+		H_SMALL_STORAGE=1
 	fi
 }
 
@@ -543,6 +540,14 @@ h_net_allowed() {
 		return 1
 	fi
 	return 0
+}
+
+h_clean_run_d() {
+	local cmd
+	h_log 1 "limited storage space available, purging run files"
+	cmd="rm -f *.cap *.csv *.ivs *.kismet.csv *.wpa_hs"
+	h_log 2 "running: $cmd"
+	$cmd 2>&1 >/dev/null
 }
 
 
@@ -940,7 +945,8 @@ h_wep_try_one_network() {
 h_wep_try_all_networks() {
 	for N in $(cat $H_NET_WEP_F); do
 		h_wep_try_one_network $N
-		h_if_volatile_backup_results
+		[ -n "$H_SMALL_STORAGE" ] && h_clean_run_d
+		#h_if_volatile_backup_results
 	done
 }
 
@@ -1081,9 +1087,8 @@ h_wpa_try_one_network() {
 h_wpa_try_all_networks() {
 	for N in $(cat $H_NET_WPA_F); do
 		h_wpa_try_one_network $N
-		# Only if we're on a device with not much storage, we remove the possibly large .cap files
-		[ -n "$H_SMALL_STORAGE" ] && rm *.cap
-		h_if_volatile_backup_results
+		[ -n "$H_SMALL_STORAGE" ] && h_clean_run_d
+		#h_if_volatile_backup_results
 	done
 }
 
