@@ -545,7 +545,7 @@ h_net_allowed() {
 h_clean_run_d() {
 	local cmd
 	h_log 1 "limited storage space available, purging run files"
-	cmd="rm -f *.cap *.csv *.ivs *.kismet.csv *.wpa_hs"
+	cmd="rm -f $H_CUR_BASE_FNAME-??.csv $H_CUR_BASE_FNAME-??.kismet.csv *.cap *.ivs *.wpa_hs *.xor"
 	h_log 2 "running: $cmd"
 	$cmd 2>&1 >/dev/null
 }
@@ -940,12 +940,13 @@ h_wep_try_one_network() {
 
 	[ "$H_OP_MODE_wep_bruteforce" = "1" ] && h_wep_bruteforce
 	[ "$H_OP_MODE_wep_attack" = "1" ] && h_wep_attack
+
+	[ -n "$H_SMALL_STORAGE" ] && h_clean_run_d
 }
 
 h_wep_try_all_networks() {
 	for N in $(cat $H_NET_WEP_F); do
 		h_wep_try_one_network $N
-		[ -n "$H_SMALL_STORAGE" ] && h_clean_run_d
 		#h_if_volatile_backup_results
 	done
 }
@@ -1082,12 +1083,13 @@ h_wpa_try_one_network() {
 	h_log 1 "trying WPA network (bssid='$H_CUR_BSSID', channel=$H_CUR_CHANNEL, essid='$H_CUR_ESSID')"
 
 	[ "$H_OP_MODE_wpa_bruteforce" = "1" ] && h_wpa_bruteforce
+
+	[ -n "$H_SMALL_STORAGE" ] && h_clean_run_d
 }
 
 h_wpa_try_all_networks() {
 	for N in $(cat $H_NET_WPA_F); do
 		h_wpa_try_one_network $N
-		[ -n "$H_SMALL_STORAGE" ] && h_clean_run_d
 		#h_if_volatile_backup_results
 	done
 }
