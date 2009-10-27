@@ -479,7 +479,16 @@ h_monitor_all() {
 	h_kis_get_networks_by_enc $H_ALL_KIS_F "O" >$H_NET_OPEN_F
 	h_kis_get_networks_by_enc $H_ALL_KIS_F "WEP" >$H_NET_WEP_F
 	h_kis_get_networks_by_enc $H_ALL_KIS_F "WPA" >$H_NET_WPA_F
+
+	h_log 1 "guessing country code..."
 	h_kis_get_essids $H_ALL_KIS_F >$H_NET_ESSIDS_F
+	H_CUR_COUNTRY=$(h_stw_get_country $H_NET_ESSIDS_F)
+	if [ -n "$H_CUR_COUNTRY" ]; then
+		h_log 1 "my guess: $H_CUR_COUNTRY"
+	else
+		h_log 1 "no idea, using generic"
+		H_CUR_COUNTRY="generic"
+	fi
 
 	n_open=$(wc -l <$H_NET_OPEN_F)
 	n_wep=$(wc -l <$H_NET_WEP_F)
@@ -706,8 +715,7 @@ h_wep_bruteforce_try() {
 		h_log 1 "no client station found"
 	fi
 
-	#country=$(get_country_from_ssid $H_CUR_ESSID)
-	country="fr"	
+	country=$H_CUR_COUNTRY
 
 	RC=1
 	if h_wep_wait_for_iv 4; then
@@ -1000,8 +1008,7 @@ h_wpa_bruteforce_try() {
 		h_log 1 "no client station found"
 	fi
 
-	#country=$(get_country_from_ssid $H_CUR_ESSID)
-	country="fr"	
+	country=$H_CUR_COUNTRY
 
 	RC=1
 	if h_wpa_wait_for_hs; then
