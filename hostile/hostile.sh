@@ -370,14 +370,13 @@ h_mv_if_diff() {
 
 # XXX: TODO Move to event based, after each WEP/WPA network attack
 # XXX: Use h_mv_if_diff() to backup the files...
-h_if_volatile_backup_results() {
+h_backup_results() {
 if [ "$H_BACKUP_TO_PERSISTENT_STORAGE" -a $H_BACKUP_TO_PERSISTENT_STORAGE -gt 0 ]
 	then
-		if [ $(df . | grep -v "Filesystem" |awk '{ print $1; }') = "tmpfs"  -a "$H_SMALL_STORAGE" -eq 1 ]
-		then
-			cat $H_WEP_F $H_PERSISTENT_DIR/hostile-wep.txt 2>/dev/null | sort -u > /tmp/temp-wep.txt ; mv /tmp/temp-wep.txt $H_PERSISTENT_DIR/hostile-wep.txt
-			cat $H_WPA_F $H_PERSISTENT_DIR/hostile-wpa.txt 2>/dev/null | sort -u > /tmp/temp-wpa.txt ; mv /tmp/temp-wpa.txt $H_PERSISTENT_DIR/hostile-wpa.txt
-		fi
+		[ -z "$H_PERSISTENT_DIR" ] && H_PERSISTENT_DIR=/root/hostile/
+		[ ! -d $H_PERSISTENT_DIR ] && mkdir -p $H_PERSISTENT_DIR
+		cat $H_WEP_F $H_PERSISTENT_DIR/hostile-wep.txt 2>/dev/null | sort -u > /tmp/temp-wep.txt ; h_mv_if_diff /tmp/temp-wep.txt $H_PERSISTENT_DIR/hostile-wep.txt
+		cat $H_WPA_F $H_PERSISTENT_DIR/hostile-wpa.txt 2>/dev/null | sort -u > /tmp/temp-wpa.txt ; h_mv_if_diff /tmp/temp-wpa.txt $H_PERSISTENT_DIR/hostile-wpa.txt
 	fi
 }
 
@@ -959,7 +958,7 @@ h_wep_try_one_network() {
 h_wep_try_all_networks() {
 	for N in $(cat $H_NET_WEP_F); do
 		h_wep_try_one_network $N
-		#h_if_volatile_backup_results
+		h_backup_results
 	done
 }
 
@@ -1102,7 +1101,7 @@ h_wpa_try_one_network() {
 h_wpa_try_all_networks() {
 	for N in $(cat $H_NET_WPA_F); do
 		h_wpa_try_one_network $N
-		#h_if_volatile_backup_results
+		h_backup_results
 	done
 }
 
