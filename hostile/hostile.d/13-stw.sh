@@ -33,7 +33,7 @@ h_stw_get_country() {
 		f=${country_f##*/}
 		country=${f%%.ssid}
 		count=$(h_stw_get_match_count $current_f $country_f)
-		res="$res\n$count $country"
+		[ $count -gt 0 ] && res="$res\n$count $country"
 	done
 	echo -e "$res" | sort -n -r | head -n 1 | awk '{ print $2; }'
 }
