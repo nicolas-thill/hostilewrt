@@ -494,14 +494,16 @@ h_monitor_all() {
 	h_kis_get_networks_by_enc $H_ALL_KIS_F "WEP" >$H_NET_WEP_F
 	h_kis_get_networks_by_enc $H_ALL_KIS_F "WPA" >$H_NET_WPA_F
 
-	h_log 1 "guessing country code..."
-	h_kis_get_essids $H_ALL_KIS_F >$H_NET_ESSIDS_F
-	H_CUR_COUNTRY=$(h_stw_get_country $H_NET_ESSIDS_F)
-	if [ -n "$H_CUR_COUNTRY" ]; then
-		h_log 1 "my guess: $H_CUR_COUNTRY"
-	else
-		h_log 1 "no idea, using generic"
-		H_CUR_COUNTRY="generic"
+	if [ -z "$H_CUR_COUNTRY" ]; then
+		h_log 1 "guessing country code..."
+		h_kis_get_essids $H_ALL_KIS_F >$H_NET_ESSIDS_F
+		H_CUR_COUNTRY=$(h_stw_get_country $H_NET_ESSIDS_F)
+		if [ -n "$H_CUR_COUNTRY" ]; then
+			h_log 1 "my guess: $H_CUR_COUNTRY"
+		else
+			h_log 1 "no idea, using generic"
+			H_CUR_COUNTRY="generic"
+		fi
 	fi
 
 	n_open=$(wc -l <$H_NET_OPEN_F)
