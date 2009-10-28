@@ -23,12 +23,8 @@ h_sta_start() {
 		iwconfig $H_STA_IF essid "$essid"
 		iwconfig $H_STA_IF enc "$enc"
 		iwconfig $H_STA_IF key "$key"
-		cmd="udhcpc -f -R -i $H_STA_IF -p $H_STA_UDHCPC_PID_F -s $H_STA_UDHCPC_SCRIPT_F"
-		h_log 2 "running: $cmd"
-		$cmd >/dev/null 2>&1 &
-		cmd="iptables -t nat -A POSTROUTING -o $H_STA_IF -j MASQUERADE"
-		h_log 2 "running: $cmd"
-		$cmd >/dev/null 2>&1
+		h_run udhcpc -f -R -i $H_STA_IF -p $H_STA_UDHCPC_PID_F -s $H_STA_UDHCPC_SCRIPT_F
+		h_run iptables -t nat -A POSTROUTING -o $H_STA_IF -j MASQUERADE
 		h_hook_register_handler on_app_ending h_sta_stop
 		h_hook_register_handler on_channel_changing h_sta_stop
 	else
@@ -41,9 +37,7 @@ h_sta_stop() {
 	local pid
 	local cmd
 	h_log 1 "stopping: Client"
-	cmd="iptables -t nat D POSTROUTING -o $H_STA_IF -j MASQUERADE"
-	h_log 2 "running: $cmd"
-	$cmd >/dev/null 2>&1
+	h_run iptables -t nat D POSTROUTING -o $H_STA_IF -j MASQUERADE
 	pid=$(cat $H_STA_UDHCPC_PID_F 2>&1)
 	if [ -n "$pid" ]; then
 		kill -TERM $pid >/dev/null 2>&1
