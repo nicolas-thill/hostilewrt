@@ -457,8 +457,8 @@ h_monitor_all() {
 
 	h_log 1 "monitoring *ALL* traffic for $H_MONITOR_TIME_LIMIT seconds"
 
-	ifconfig $H_MON_IF down
-	iwconfig $H_MON_IF channel 0
+	ifconfig $H_MON_IF down		# TODO: Maybe remove that if airodump works correctly on firsttime
+	#iwconfig $H_MON_IF channel 0	# DONE: Because it creates error on EEE PC and Nico says it's not used anymore
 
 	h_capture_start h_capture --write ALL ${H_OPT_BSSID:+--bssid $H_OPT_BSSID} ${H_OPT_CHANNEL:+--channel $H_OPT_CHANNEL} -f 250 --output-format=csv,kismet
 	sleep $H_MONITOR_TIME_LIMIT
