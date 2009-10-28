@@ -169,6 +169,22 @@ h_log() {
 	echo "$H_ME [$time_str]: $@" >>$H_LOG_F
 }
 
+h_exec() {
+	local cmd
+
+	cmd="$*"
+	h_log 2 "running: $cmd"
+	exec $cmd >/dev/null 2>&1
+}
+
+h_run() {
+	local cmd
+
+	cmd="$*"
+	h_log 2 "running: $cmd"
+	$cmd >/dev/null 2>&1
+}
+
 h_detect_small_storage() {
 	local avail
 	
@@ -455,10 +471,7 @@ h_replay_stop() {
 
 
 h_capture() {
-	local cmd
-	cmd="airodump-ng $H_MON_IF $*"
-	h_log 2 "running: $cmd"
-	exec $cmd
+	h_exec airodump-ng $H_MON_IF $*
 }
 
 h_monitor_all() {
@@ -555,11 +568,8 @@ h_net_allowed() {
 }
 
 h_clean_run_d() {
-	local cmd
 	h_log 1 "limited storage space available, purging run files"
-	cmd="rm -f $H_CUR_BASE_FNAME-??.csv $H_CUR_BASE_FNAME-??.kismet.csv *.cap *.ivs *.wpa_hs *.xor"
-	h_log 2 "running: $cmd"
-	$cmd 2>&1 >/dev/null
+	h_run rm -f $H_CUR_BASE_FNAME-??.csv $H_CUR_BASE_FNAME-??.kismet.csv *.cap *.ivs *.wpa_hs *.xor
 }
 
 
@@ -761,28 +771,19 @@ h_wep_bruteforce_try() {
 }
 
 h_wep_crack() {
-	local cmd
-	cmd="aircrack-ng -q -b $H_CUR_BSSID -l $H_CUR_KEY_F $H_CUR_BASE_FNAME-??.$H_CUR_CAP_FEXT"
-	h_log 2 "running: $cmd"
-	exec $cmd
+	h_exec aircrack-ng -q -b $H_CUR_BSSID -l $H_CUR_KEY_F $H_CUR_BASE_FNAME-??.$H_CUR_CAP_FEXT
 }
 
 h_wep_dict_crack() {
-	local cmd
 	local keysize
 	local dictfile
 	keysize=$1
 	dictfile=$2
-	cmd="aircrack-ng -w $dictfile -n $keysize -a 1 -l $H_CUR_KEY_F $H_CUR_BASE_FNAME-??.$H_CUR_CAP_FEXT"
-	h_log 2 "running: $cmd"
-	$cmd 2>&1 >/dev/null
+	h_run aircrack-ng -w $dictfile -n $keysize -a 1 -l $H_CUR_KEY_F $H_CUR_BASE_FNAME-??.$H_CUR_CAP_FEXT
 }
 
 h_wep_auth() {
-	local cmd
-	cmd="aireplay-ng $H_MON_IF $*"
-	h_log 2 "running: $cmd"
-	exec $cmd
+	h_exec aireplay-ng $H_MON_IF $*
 }
 
 h_wep_auth_fake1() {
@@ -812,13 +813,7 @@ h_wep_deauth() {
 #aireplay-ng ath1 --interactive -F -h STA -r p.cap
 
 h_wep_replay() {
-	local cmd
-	cmd="aireplay-ng $H_MON_IF $*"
-	if [ $H_INJECTION_RATE_LIMIT -gt 0 ]; then
-		cmd="$cmd -x $H_INJECTION_RATE_LIMIT"
-	fi
-	h_log 2 "running: $cmd"
-	exec $cmd
+	h_exec aireplay-ng $H_MON_IF $* ${H_INJECTION_RATE_LIMIT:+ -x $H_INJECTION_RATE_LIMIT} 
 }
 
 h_wep_replay_arp1() {
@@ -965,12 +960,9 @@ h_wep_try_all_networks() {
 #
 
 h_wpa_dict_crack() {
-	local cmd
 	local dictfile
 	dictfile=$1
-	cmd="aircrack-ng -w $dictfile -a 2 -l $H_CUR_KEY_F $H_CUR_BASE_FNAME-??.$H_CUR_CAP_FEXT"
-	h_log 2 "running: $cmd"
-	$cmd 2>&1 >/dev/null
+	h_run aircrack-ng -w $dictfile -a 2 -l $H_CUR_KEY_F $H_CUR_BASE_FNAME-??.$H_CUR_CAP_FEXT
 }
 
 h_wpa_wait_for_hs() {
