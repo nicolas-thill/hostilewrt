@@ -115,6 +115,9 @@ h_get_options() {
 			-vvv)
 				H_OPT_VERBOSE=$(($H_OPT_VERBOSE + 3))
 				;;
+			-vvvv)
+				H_OPT_VERBOSE=$(($H_OPT_VERBOSE + 4))
+				;;
 			-h|--help)
 				h_usage
 				exit 0
@@ -161,18 +164,26 @@ h_log() {
 
 h_exec() {
 	local cmd
+	local rc
 
 	cmd="$*"
 	h_log 2 "running: $cmd"
 	exec $cmd >/dev/null 2>&1
+	rc=$?
+	h_log 3 "returned $rc"
+	return $rc
 }
 
 h_run() {
 	local cmd
+	local rc
 
 	cmd="$*"
 	h_log 2 "running: $cmd"
 	$cmd >/dev/null 2>&1
+	rc=$?
+	h_log 3 "returned $rc"
+	return $rc
 }
 
 h_detect_small_storage() {
@@ -468,16 +479,27 @@ h_capture() {
 }
 
 h_monitor_all() {
+	local bssid
+	local channel
 	local n_open
 	local n_wep
 	local n_wpa
 
 	h_log 1 "monitoring *ALL* traffic for $H_MONITOR_TIME_LIMIT seconds"
+	
+	if [ -n "$H_OPT_BSSID" ]; then
+		bssid=$H_OPT_CHANNEL
+	fi
+	if [ -n "$H_OPT_CHANNEL" ]; then
+		channel=$H_OPT_CHANNEL
+	elif [ -n "$H_STA_CONNECTED" ]; then
+		channel=$H_CUR_CHANNEL
+	fi
 
 	ifconfig $H_MON_IF down		# TODO: Maybe remove that if airodump works correctly on firsttime
 	#iwconfig $H_MON_IF channel 0	# DONE: Because it creates error on EEE PC and Nico says it's not used anymore
 
-	h_capture_start h_capture --write ALL ${H_OPT_BSSID:+--bssid $H_OPT_BSSID} ${H_OPT_CHANNEL:+--channel $H_OPT_CHANNEL} -f 250 --output-format=csv,kismet
+	h_capture_start h_capture --write ALL ${bssid:+--bssid $bssid} ${channel:+--channel $channel} -f 250 --output-format=csv,kismet
 	sleep $H_MONITOR_TIME_LIMIT
 	h_capture_stop
 	
@@ -515,10 +537,21 @@ h_monitor_all() {
 
 h_net_switch() {
 	local N
+	local bssid
+	local channel
+	local essid
+
 	N=$1
-	H_CUR_BSSID=$(h_kis_get_network_bssid $H_ALL_KIS_F $N)
-	H_CUR_CHANNEL=$(h_kis_get_network_channel $H_ALL_KIS_F $N)
-	H_CUR_ESSID=$(h_kis_get_network_essid $H_ALL_KIS_F $N)
+	bssid=$(h_kis_get_network_bssid $H_ALL_KIS_F $N)
+	channel=$(h_kis_get_network_channel $H_ALL_KIS_F $N)
+	essid=$(h_kis_get_network_essid $H_ALL_KIS_F $N)
+	if [ -n "$H_STA_CONNECTED" -a "$channel" != "$H_CUR_CHANNEL" ]; then
+		h_log 1 "sta connected, using channel $H_CUR_CHANNEL, skipping network (bssid='$bssid', channel=$channel, essid='$essid')"
+		return 1
+	fi
+	H_CUR_BSSID="$bssid"
+	H_CUR_CHANNEL="$channel"
+	H_CUR_ESSID="$essid"
 	H_CUR_RATE=$(h_kis_get_network_max_rate $H_ALLKIS_F $N)
 	H_CUR_BASE_FNAME=$(h_get_sane_fname $H_CUR_BSSID)
 	return 0
@@ -576,6 +609,8 @@ h_open_try_one_network() {
 	h_net_switch $1 || return 1
 	h_net_allowed || return 1
 	h_log 1 "found open network (bssid='$H_CUR_BSSID', channel=$H_CUR_CHANNEL, essid='$H_CUR_ESSID')"
+
+	h_sta_try "OPEN" "off"
 }
 
 h_open_try_all_networks() {
