@@ -359,13 +359,25 @@ h_hw_prepare() {
 	return 1
 }
 
-# XXX: TODO Move to event based, after each WEP/WPA network attack
-# XXX: Idea for the hardcoded repository? Maybe should put that in a hostile.conf variable?
-h_if_volatile_backup_results() {
-	if [ $(df . | grep -v "Filesystem" |awk '{ print $1; }') = "tmpfs"  -a "$H_SMALL_STORAGE" -eq 1 ]
+h_mv_if_diff() {
+	if [ "$1" -a "$2" ]
 	then
-		cat $H_WEP_F /root/hostile/hostile-wep.txt 2>/dev/null | sort -u > /tmp/temp-wep.txt ; mv /tmp/temp-wep.txt /root/hostile/hostile-wep.txt
-		cat $H_WPA_F /root/hostile/hostile-wpa.txt 2>/dev/null | sort -u > /tmp/temp-wpa.txt ; mv /tmp/temp-wpa.txt /root/hostile/hostile-wpa.txt
+		SRC=$1
+		DEST=$2
+		diff -q $SRC $DEST >/dev/null ; [ $? -eq 1 ] && mv $SRC $DEST
+	fi
+}
+
+# XXX: TODO Move to event based, after each WEP/WPA network attack
+# XXX: Use h_mv_if_diff() to backup the files...
+h_if_volatile_backup_results() {
+if [ "$H_BACKUP_TO_PERSISTENT_STORAGE" -a $H_BACKUP_TO_PERSISTENT_STORAGE -gt 0 ]
+	then
+		if [ $(df . | grep -v "Filesystem" |awk '{ print $1; }') = "tmpfs"  -a "$H_SMALL_STORAGE" -eq 1 ]
+		then
+			cat $H_WEP_F $H_PERSISTENT_DIR/hostile-wep.txt 2>/dev/null | sort -u > /tmp/temp-wep.txt ; mv /tmp/temp-wep.txt $H_PERSISTENT_DIR/hostile-wep.txt
+			cat $H_WPA_F $H_PERSISTENT_DIR/hostile-wpa.txt 2>/dev/null | sort -u > /tmp/temp-wpa.txt ; mv /tmp/temp-wpa.txt $H_PERSISTENT_DIR/hostile-wpa.txt
+		fi
 	fi
 }
 
