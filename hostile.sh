@@ -67,16 +67,6 @@ H_OPT_VERBOSE=0
 
 H_REFRESH_DELAY=20
 
-h_get_op_modes() {
-	local ifs
-	ifs=$IFS
-	IFS=,
-	for mode in $H_OP_MODES; do
-		eval "H_OP_MODE_$mode=1"
-	done
-	IFS=$ifs
-}
-
 h_get_options() {
 	while [ -n "$1" ]; do
 		case $1 in
@@ -309,7 +299,10 @@ h_startup() {
 		h_log 1 "using include file: $f"
 	done
 
-	h_get_op_modes
+	for M in $H_OP_MODES; do
+		eval "H_OP_MODE_$M=1"
+	done
+
 	h_detect_small_storage
 
 	for M in $H_LIB_D/[0-9][0-9]-*.sh; do
