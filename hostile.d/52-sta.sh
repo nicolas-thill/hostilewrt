@@ -70,12 +70,14 @@ h_sta_connect() {
 	h_run iwconfig $H_STA_IF essid "$H_CUR_ESSID"
 	h_run iwconfig $H_STA_IF key "$key"
 	h_run ifconfig $H_STA_IF up
-	h_run ifpriv $H_STA_IF bgscan 0
+	h_run iwpriv $H_STA_IF bgscan 0
 
 	h_log 1 "requesting IP address via DHCP"
 	h_run udhcpc -f -n -q -i $H_STA_IF -s $H_STA_UDHCPC_SCRIPT_F \
-		|| return 1
-	
+	if [ $? -ne 0 ]; then
+		h_log 1 "no address received"
+		return 1
+	fi
 	return 0
 }
 
