@@ -73,7 +73,7 @@ h_sta_connect() {
 	h_run iwpriv $H_STA_IF bgscan 0
 
 	h_log 1 "requesting IP address via DHCP"
-	h_run udhcpc -f -n -q -i $H_STA_IF -s $H_STA_UDHCPC_SCRIPT_F \
+	h_run udhcpc -f -n -q -i $H_STA_IF -s $H_STA_UDHCPC_SCRIPT_F
 	if [ $? -ne 0 ]; then
 		h_log 1 "no address received"
 		return 1
