@@ -744,6 +744,8 @@ h_wep_attack_try() {
 				break
 			fi
 		done
+	else
+		h_log 1 "attack failed"
 	fi
 
 	h_crack_stop
