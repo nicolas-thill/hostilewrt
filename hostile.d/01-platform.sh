@@ -49,6 +49,8 @@ h_platform_detect() {
 		h_log 1 "unable to guess current platform, assuming 'unknown'"
 		H_PLATFORM="unknown"
 	fi
+
+	return 0
 }
 
 h_hook_register_handler on_app_starting h_platform_detect

@@ -28,6 +28,8 @@ h_wifi_mac80211_startup() {
 	iw phy $H_WIFI_IF interface add $H_MON_IF type monitor >/dev/null 2>&1 \
 		|| h_log 0 "can't create monitor ($H_MON_IF) interface"
 	H_MON_MAC=$(h_mac_get $H_MON_IF)
+
+	return 0
 }
 
 h_wifi_mac80211_cleanup() {
@@ -50,6 +52,8 @@ h_wifi_mac80211_cleanup() {
 #	[ -n "$H_WIFI_MAC_OLD" ] && {
 #		h_mac_set $H_WIFI_IF $H_WIFI_MAC_OLD
 #	}
+
+	return 0
 }
 
 h_wifi_mac80211_detect() {
@@ -60,6 +64,8 @@ h_wifi_mac80211_detect() {
 		h_hook_register_handler on_wifi_startup h_wifi_mac80211_startup
 		h_hook_register_handler on_wifi_cleanup h_wifi_mac80211_cleanup
 	}
+
+	return 0
 }
 
 h_hook_register_handler on_app_starting h_wifi_mac80211_detect

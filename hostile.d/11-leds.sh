@@ -27,23 +27,28 @@ h_led_off() {
 h_leds_on_app_started() {
 	h_led_off $H_LED_SUCCESS
 	h_led_blink $H_LED_WIP 500
+	return 0
 }
 
 h_leds_on_app_ended() {
 	h_led_off $H_LED_SUCCESS
 	h_led_off $H_LED_WIP
+	return 0
 }
 
 h_leds_on_wep_attack_started() {
 	h_led_blink $H_LED_WIP 500
+	return 0
 }
 
 h_leds_on_wep_attack_working() {
 	h_led_blink $H_LED_WIP 100
+	return 0
 }
 
 h_leds_on_wep_key_found() {
 	h_led_on $H_LED_SUCCESS
+	return 0
 }
 
 h_leds_init() {
@@ -56,6 +61,7 @@ h_leds_init() {
 		h_hook_register_handler on_wep_attack_working h_leds_on_wep_attack_working
 		h_hook_register_handler on_wep_key_found h_leds_on_wep_key_found
 	fi
+	return 0
 }
 
 h_hook_register_handler on_app_starting h_leds_init
