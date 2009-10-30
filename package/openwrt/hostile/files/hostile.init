@@ -4,10 +4,12 @@
 START=99
 STOP=01
 
+OPTIONS="-vv"
+
 SSD=start-stop-daemon
 
 start() {
-	$SSD -S -b -x hostile
+	$SSD -S -b -x hostile -- $OPTIONS
 }
 
 stop() {

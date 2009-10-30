@@ -8,7 +8,7 @@
 include $(TOPDIR)/rules.mk
 
 PKG_NAME:=hostile
-PKG_REV:=91
+PKG_REV:=145
 PKG_VERSION:=r$(PKG_REV)
 PKG_RELEASE:=1
 
@@ -27,6 +27,7 @@ define Package/hostile
   TITLE:=An automated wireless security audit tool
   URL:=http://hostile.nico-and-co.net/
   SUBMENU:=wireless
+  PKGARCH:=all
 endef
 
 define Build/Configure
@@ -44,10 +45,11 @@ define Package/hostile/install
 	$(INSTALL_BIN) $(PKG_BUILD_DIR)/hostile.sh $(1)/usr/bin/hostile
 	$(INSTALL_DIR) $(1)/usr/lib/hostile
 	$(INSTALL_DATA) $(PKG_BUILD_DIR)/hostile.d/*.sh $(1)/usr/lib/hostile/
+	chmod 0755 $(1)/usr/lib/hostile/udhcpc.sh
 	$(INSTALL_DIR) $(1)/usr/lib/hostile/dict
 	$(INSTALL_DATA) $(PKG_BUILD_DIR)/hostile.d/dict/*.dict $(1)/usr/lib/hostile/dict/
-	$(INSTALL_DIR) $(1)/usr/lib/hostile/ssid-to-wordlist
-	$(INSTALL_DATA) $(PKG_BUILD_DIR)/hostile.d/ssid-to-wordlist/*.ssid $(1)/usr/lib/hostile/ssid-to-wordlist/
+	$(INSTALL_DIR) $(1)/usr/lib/hostile/ssid
+	$(INSTALL_DATA) $(PKG_BUILD_DIR)/hostile.d/ssid/*.ssid $(1)/usr/lib/hostile/ssid/
 	$(INSTALL_DIR) $(1)/etc
 	$(INSTALL_DATA) $(PKG_BUILD_DIR)/hostile.conf $(1)/etc/
 	$(SED) 's|^\(H_LIB_D\)=.*$$$$|\1=/usr/lib/hostile|' \
