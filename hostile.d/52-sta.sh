@@ -24,7 +24,7 @@ h_sta_stop() {
 	h_log 1 "stopping sta mode"
 
 	h_run iptables -t nat D POSTROUTING -o $H_STA_IF -j MASQUERADE
-	ifconfig $H_STA_IF down
+	h_run ifconfig $H_STA_IF down
 
 	h_hook_unregister_handler on_app_ending h_sta_stop
 	
