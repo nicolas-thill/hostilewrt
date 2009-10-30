@@ -36,7 +36,6 @@ h_wpa_key_log() {
 	key=$(cat $H_CUR_KEY_F)
 	h_log 0 "key found: $key (bssid=$H_CUR_BSSID, channel=$H_CUR_CHANNEL, essid='$H_CUR_ESSID')"
 	echo "$H_CUR_BSSID,$H_CUR_ESSID,$H_CUR_CHANNEL,$key" >>$H_WPA_F
-	H_WPA_CHANNEL=$H_CUR_CHANNEL
 }
 
 h_wpa_bruteforce_try() {
