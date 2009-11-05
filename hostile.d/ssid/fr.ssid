@@ -1,12 +1,11 @@
-Livebox-XXXX
-Livebox-[a-zA-Z0-9]+
-Livebox-[A-F0-9]+
-Wanadoo_[a-f0-9]+
-Neuf WiFi
+Livebox-[0-9A-Fa-z]+
 freephonie
 FreeWifi
-NEUF_[A-F0-9]+
-NEUF_
-FREEBOX
-NUMERICABLE-[A-F0-9a-f]+
-DartyBox_
+Neuf WiFi
+NEUF_[0-9A-Fa-z]+
+NUMERICABLE-[0-9A-Fa-z]+
+A[lL][iI][cC][eE]-[0-9A-Fa-z]+
+DartyBox_.*
+F[rR][eE][eE][bB][oO][xX]
+W[aA][nN][aA][dD][oO][oO]-[0-9A-Fa-f]+
+OzoneParis.net : access libre
