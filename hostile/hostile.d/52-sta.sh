@@ -10,7 +10,7 @@ H_STA_CONNECTED=
 h_sta_startup() {
 	[ "$H_OP_MODE_sta" = "1" ] || return 0
 	
-	h_log 1 "starting sta mode"
+	h_log 1 "Client: starting"
 
 	h_run iptables -t nat -A POSTROUTING -o $H_STA_IF -j MASQUERADE \
 		|| return 1
@@ -21,7 +21,7 @@ h_sta_startup() {
 }
 
 h_sta_cleanup() {
-	h_log 1 "stopping sta mode"
+	h_log 1 "Client: stopping"
 
 	h_run iptables -t nat D POSTROUTING -o $H_STA_IF -j MASQUERADE
 	h_run ifconfig $H_STA_IF down
@@ -32,17 +32,17 @@ h_sta_cleanup() {
 }
 
 h_sta_check() {
-	h_log 1 "checking client connectivity"
+	h_log 1 "Client: checking connectivity (trying to reach '$H_STA_PING_HOST')"
 
 	h_run ping -q -c 3 -W 5 -w 15 -I $H_STA_IF $H_STA_PING_HOST
 	if [ $? -ne 0 ]; then
-		h_log 1 "not connected"
+		h_log 1 "Client: not connected"
 		unset H_STA_CONNECTED
 		h_hook_call_handlers on_wifi_sta_cleanup
 		return 1
 	fi
 	
-	h_log 1 "(still) connected"
+	h_log 1 "Client: (still) connected"
 	H_STA_CONNECTED=1
 
 	return 0
@@ -57,10 +57,10 @@ h_sta_connect() {
 
 	h_hook_call_handlers on_wifi_sta_startup "$enc" "$key"
 
-	h_log 1 "requesting IP address via DHCP"
+	h_log 1 "Client: requesting IP address via DHCP"
 	h_run udhcpc -f -n -q -i $H_STA_IF -s $H_STA_UDHCPC_SCRIPT_F
 	if [ $? -ne 0 ]; then
-		h_log 1 "no address received"
+		h_log 1 "Client: no address received"
 		h_hook_call_handlers on_wifi_sta_cleanup
 		return 1
 	fi
