@@ -105,6 +105,47 @@ h_wifi_madwifi_channel_change() {
 	return 0
 }
 
+h_wifi_madwifi_sta_startup() {
+	local enc
+	local key
+
+	enc="$1"
+	key="$2"
+
+	case $enc in
+	  OPEN)
+		;;
+	  WEP)
+		;;
+	  *)
+		h_log 1 "Client: no support for '$enc' encryption (yet), sorry!"
+		return 1
+	esac
+
+	h_log 1 "Client: configuring wireless (bssid='$H_CUR_BSSID', channel=$H_CUR_CHANNEL, essid='$H_CUR_ESSID')"
+	h_run ifconfig $H_STA_IF down
+	h_run iwconfig $H_STA_IF ap "$H_CUR_BSSID"
+	h_run iwconfig $H_STA_IF essid "$H_CUR_ESSID"
+	case $enc in
+	  OPEN)
+		h_run iwconfig $H_STA_IF key off
+		;;
+	  WEP)
+		h_run iwconfig $H_STA_IF key "$key"
+		;;
+	esac
+	h_run ifconfig $H_STA_IF up
+	
+	return 0
+}
+
+h_wifi_madwifi_sta_cleanup() {
+	h_log 1 "Client: deconfiguring wireless (bssid='$H_CUR_BSSID', channel=$H_CUR_CHANNEL, essid='$H_CUR_ESSID')"
+	h_run ifconfig $H_STA_IF down
+	h_run iwconfig $H_STA_IF ap off
+	h_run iwconfig $H_STA_IF essid off
+}
+
 h_wifi_madwifi_detect() {
 	if [ -e /proc/sys/dev/ath ]; then
 		if [ "$H_WIFI_IF" = "auto" -a -e /proc/sys/dev/wifi0 ]; then
@@ -114,6 +155,8 @@ h_wifi_madwifi_detect() {
 		h_hook_register_handler on_wifi_startup h_wifi_madwifi_startup
 		h_hook_register_handler on_wifi_cleanup h_wifi_madwifi_cleanup
 		h_hook_register_handler on_wifi_channel_change h_wifi_madwifi_channel_change
+		h_hook_register_handler on_wifi_sta_connect h_wifi_madwifi_sta_connect
+		h_hook_register_handler on_wifi_sta_disconnect h_wifi_madwifi_sta_disconnect
 	fi
 
 	return 0
