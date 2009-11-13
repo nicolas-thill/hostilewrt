@@ -11,7 +11,7 @@ h_monitor_all() {
 	h_log 1 "monitoring *ALL* traffic for $H_MONITOR_TIME_LIMIT seconds"
 	
 	if [ -n "$H_OPT_BSSID" ]; then
-		bssid=$H_OPT_CHANNEL
+		bssid=$H_OPT_BSSID
 	fi
 	if [ -n "$H_OPT_CHANNEL" ]; then
 		channel=$H_OPT_CHANNEL
