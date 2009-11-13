@@ -6,24 +6,24 @@ h_wifi_mac80211_startup() {
 	H_MON_IF=wlan2
 
 # XXX: fix mac spoofing with mac80211
-#	[ -n "$H_WIFI_MAC" ] && {
+#	if [ -n "$H_WIFI_MAC" ]; then
 #		H_WIFI_MAC_OLD=$(h_mac_get $H_WIFI_IF)
 #		h_mac_set $H_WIFI_IF $H_WIFI_MAC
-#	}
+#	fi
 	H_WIFI_MAC=$(cat /sys/class/ieee80211/${H_WIFI_IF}/macaddress)
 	h_log 1 "using interface: $H_WIFI_IF, mac address: $H_WIFI_MAC"
 
-	[ "$H_OP_MODE_ap" = "1" ] && {
+	if [ "$H_OP_MODE_ap" = "1" ]; then
 		h_run iw phy $H_WIFI_IF interface add $H_AP_IF type managed >/dev/null 2>&1 \
 			|| h_log 0 "can't create ap ($H_AP_IF) interface"
 		H_AP_MAC=$(h_mac_get $H_AP_IF)
-	}
+	fi
 
-	[ "$H_OP_MODE_sta" = "1" ] && {
+	if [ "$H_OP_MODE_sta" = "1" ]; then
 		h_run iw phy $H_WIFI_IF interface add $H_STA_IF type managed >/dev/null 2>&1 \
 			|| h_log 0 "can't create sta ($H_STA_IF) interface"
 		H_STA_MAC=$(h_mac_get $H_STA_IF)
-	}
+	fi
 
 	h_run iw phy $H_WIFI_IF interface add $H_MON_IF type monitor >/dev/null 2>&1 \
 		|| h_log 0 "can't create monitor ($H_MON_IF) interface"
@@ -37,33 +37,80 @@ h_wifi_mac80211_cleanup() {
 	sleep 1
 	h_run iw dev $H_MON_IF del
 
-	[ "$H_OP_MODE_sta" = "1" ] && {
+	if [ "$H_OP_MODE_sta" = "1" ]; then
 		h_run ifconfig $H_STA_IF down
 		sleep 1
 		h_run iw dev $H_STA_IF del
-	}
+	fi
 
-	[ "$H_OP_MODE_ap" = "1" ] && {
+	if [ "$H_OP_MODE_ap" = "1" ]; then
 		h_run ifconfig $H_AP_IF down
 		sleep 1
 		h_run iw dev $H_AP_IF del
-	}
+	fi
 
-#	[ -n "$H_WIFI_MAC_OLD" ] && {
+#	if [ -n "$H_WIFI_MAC_OLD" ]; then
 #		h_mac_set $H_WIFI_IF $H_WIFI_MAC_OLD
-#	}
+#	fi
+
+	return 0
+}
+
+h_wifi_mac80211_channel_change() {
+	local new_channel
+	local old_channel
+	new_channel=$1
+	old_channel=$H_CUR_CHANNEL
+
+	if [ "$new_channel" != "$old_channel" ]; then
+		h_log 1 "switching to channel: $new_channel"
+
+		h_hook_call_handlers on_wifi_channel_changing $new_channel $old_channel
+
+		if [ "$H_OP_MODE_ap" = "1" ]; then
+			h_run ifconfig $H_AP_IF down
+		fi
+		if [ "$H_OP_MODE_sta" = "1" ]; then
+			h_run ifconfig $H_STA_IF down
+		fi
+		h_run ifconfig $H_MON_IF down
+
+		if [ "$H_OP_MODE_ap" = "1" ]; then
+			h_run iw $H_AP_IF set channel $new_channel
+		fi
+		if [ "$H_OP_MODE_sta" = "1" ]; then
+			h_run iw $H_STA_IF set channel $new_channel
+		fi
+		h_run iw $H_MON_IF set channel $new_channel
+
+		if [ "$H_OP_MODE_ap" = "1" ]; then
+			h_run ifconfig $H_AP_IF up
+		fi
+		if [ "$H_OP_MODE_sta" = "1" ]; then
+			if [ -n "$H_STA_CONNECTED" ]; then
+				h_run ifconfig $H_STA_IF up
+			fi
+		fi
+		h_run ifconfig $H_MON_IF up
+
+		h_hook_call_handlers on_wifi_channel_changed $new_channel $old_channel
+
+		H_CUR_CHANNEL=$new_channel
+	fi
 
 	return 0
 }
 
 h_wifi_mac80211_detect() {
-	[ -e /sys/class/ieee80211 ] && {
-		[ "$H_WIFI_IF" = "auto" -a -e /sys/class/ieee80211/phy0 ] \
-			&& H_WIFI_IF=phy0
+	if [ -e /sys/class/ieee80211 ]; then
+		if [ "$H_WIFI_IF" = "auto" -a -e /sys/class/ieee80211/phy0 ]; then
+			H_WIFI_IF=phy0
+		fi
 		
 		h_hook_register_handler on_wifi_startup h_wifi_mac80211_startup
 		h_hook_register_handler on_wifi_cleanup h_wifi_mac80211_cleanup
-	}
+		h_hook_register_handler on_wifi_cleanup h_wifi_mac80211_channel_change
+	fi
 
 	return 0
 }

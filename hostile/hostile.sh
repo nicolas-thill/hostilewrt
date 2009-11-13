@@ -348,37 +348,6 @@ h_abort() {
 	exit 1
 }
 
-h_hw_prepare() {
-	local plop
-	local rate
-	if [ "$H_CUR_CHANNEL" != "$H_OLD_CHANNEL" ]; then
-		h_hook_call_handlers on_channel_changing
-		plop=1
-	fi
-	if [ "$H_CUR_RATE" != "$H_OLD_RATE" ]; then
-		h_hook_call_handlers on_rate_changing
-		plop=1
-	fi
-	if [ -n "$plop" ]; then
-		ifconfig $H_MON_IF down
-		if [ "$H_CUR_CHANNEL" != "$H_OLD_CHANNEL" ]; then
-			h_log 1 "switching to channel: $H_CUR_CHANNEL"
-			iwconfig $H_MON_IF channel $H_CUR_CHANNEL
-			H_OLD_CHANNEL=$H_CUR_CHANNEL
-			h_hook_call_handlers on_channel_changed
-		fi
-		if [ "$H_CUR_RATE" != "$H_OLD_RATE" ]; then
-			[ $H_CUR_RATE -le 11 ] && rate="11M" || rate="54M"
-			h_log 1 "ajusting bit rate to: $rate"
-			iwconfig $H_MON_IF rate $rate
-			H_OLD_RATE=$H_CUR_RATE
-			h_hook_call_handlers on_rate_changed
-		fi
-		return 0
-	fi
-	return 1
-}
-
 h_mv_if_diff() {
 	if [ "$1" -a "$2" ]
 	then

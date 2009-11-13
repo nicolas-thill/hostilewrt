@@ -19,8 +19,7 @@ h_monitor_all() {
 		channel=$H_CUR_CHANNEL
 	fi
 
-	ifconfig $H_MON_IF down		# TODO: Maybe remove that if airodump works correctly on firsttime
-	#iwconfig $H_MON_IF channel 0	# DONE: Because it creates error on EEE PC and Nico says it's not used anymore
+	h_hook_call_handlers on_wifi_channel_change $channel
 
 	h_capture_start h_capture --write ALL ${bssid:+--bssid $bssid} ${channel:+--channel $channel} -f 250 --output-format=csv,kismet
 	sleep $H_MONITOR_TIME_LIMIT
@@ -73,9 +72,8 @@ h_net_switch() {
 		return 1
 	fi
 	H_CUR_BSSID="$bssid"
-	H_CUR_CHANNEL="$channel"
 	H_CUR_ESSID="$essid"
-	H_CUR_RATE=$(h_kis_get_network_max_rate $H_ALLKIS_F $N)
+	h_hook_call_handlers on_wifi_channel_change $channel
 	H_CUR_BASE_FNAME=$(h_get_sane_fname $H_CUR_BSSID)
 	return 0
 }
