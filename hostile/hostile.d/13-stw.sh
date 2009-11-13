@@ -18,7 +18,7 @@ h_stw_get_match_count() {
 			echo "$count"
 			break
 		fi
-		cat $country_f | grep -v "^#" | h_regex_loop_match $current \
+		cat $country_f | grep -v "^#" | h_regex_loop_match "$current" \
 			&& count=$((count + 1))
 	done
 }
