@@ -92,8 +92,6 @@ h_wpa_bruteforce() {
 
 	h_hook_call_handlers on_wpa_bruteforce_started
 	
-	h_hw_prepare
-	
 	h_log 1 "monitoring AP traffic for $H_MONITOR_TIME_LIMIT seconds"
 	H_CUR_CAP_FEXT="ivs"
 	h_capture_start h_capture --write $H_CUR_BASE_FNAME --bssid $H_CUR_BSSID --channel $H_CUR_CHANNEL --output-format=ivs,csv

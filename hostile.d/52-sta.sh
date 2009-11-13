@@ -38,6 +38,9 @@ h_sta_check() {
 	if [ $? -ne 0 ]; then
 		h_log 1 "not connected"
 		unset H_STA_CONNECTED
+		ifconfig $H_STA_IF down
+		iwconfig $H_STA_IF ap off
+		iwconfig $H_STA_IF essid off
 		return 1
 	fi
 	
@@ -76,6 +79,9 @@ h_sta_connect() {
 	h_run udhcpc -f -n -q -i $H_STA_IF -s $H_STA_UDHCPC_SCRIPT_F
 	if [ $? -ne 0 ]; then
 		h_log 1 "no address received"
+		ifconfig $H_STA_IF down
+		iwconfig $H_STA_IF ap off
+		iwconfig $H_STA_IF essid off
 		return 1
 	fi
 	return 0

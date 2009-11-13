@@ -279,8 +279,6 @@ h_wep_attack() {
 
 	h_hook_call_handlers on_wep_attack_started
 	
-	h_hw_prepare
-	
 	if [ $H_CAPTURE_IV_ONLY -gt 0 ]; then
 		H_CUR_CAP_FEXT="ivs"
 		capture_options="--output-format=ivs,csv"
@@ -311,8 +309,6 @@ h_wep_bruteforce() {
 	h_log 1 "trying WEP bruteforce mode"
 
 	h_hook_call_handlers on_wep_bruteforce_started
-	
-	h_hw_prepare
 	
 	h_log 1 "monitoring AP traffic for $H_MONITOR_TIME_LIMIT seconds"
 	if [ $H_CAPTURE_IV_ONLY -gt 0 ]; then
