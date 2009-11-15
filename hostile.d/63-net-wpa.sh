@@ -85,30 +85,20 @@ h_wpa_bruteforce_try() {
 }
 
 h_wpa_bruteforce() {
-	local capture_options
 	h_wpa_key_found && return
 
 	h_log 1 "trying WPA bruteforce mode"
 
 	h_hook_call_handlers on_wpa_bruteforce_started
 	
-	h_log 1 "monitoring AP traffic for $H_MONITOR_TIME_LIMIT seconds"
-	H_CUR_CAP_FEXT="ivs"
-	h_capture_start h_capture --write $H_CUR_BASE_FNAME --bssid $H_CUR_BSSID --channel $H_CUR_CHANNEL --output-format=ivs,csv
-
-	sleep $H_MONITOR_TIME_LIMIT
-
-	H_CUR_CSV_F=$(h_get_last_file $H_CUR_BASE_FNAME-??.csv)
-	H_CUR_KEY_F="$H_CUR_BASE_FNAME.key"
-	
 	h_wpa_bruteforce_try
-
-	h_capture_stop
 
 	h_hook_call_handlers on_wpa_bruteforce_ended
 }
 
 h_wpa_try_one_network() {
+	local capture_options
+
 	h_net_switch $1 || return 1
 	h_net_allowed || return 1
 
@@ -119,7 +109,18 @@ h_wpa_try_one_network() {
 
 	h_log 1 "trying WPA network (bssid='$H_CUR_BSSID', channel=$H_CUR_CHANNEL, essid='$H_CUR_ESSID')"
 
+	h_log 1 "monitoring AP traffic for $H_MONITOR_TIME_LIMIT seconds"
+	H_CUR_CAP_FEXT="ivs"
+	h_capture_start h_capture --write $H_CUR_BASE_FNAME --bssid $H_CUR_BSSID --channel $H_CUR_CHANNEL --output-format=ivs,csv
+
+	sleep $H_MONITOR_TIME_LIMIT
+
+	H_CUR_CSV_F=$(h_get_last_file $H_CUR_BASE_FNAME-??.csv)
+	H_CUR_KEY_F="$H_CUR_BASE_FNAME.key"
+	
 	[ "$H_OP_MODE_wpa_bruteforce" = "1" ] && h_wpa_bruteforce
+
+	h_capture_stop
 
 	[ -n "$H_SMALL_STORAGE" ] && h_clean_run_d
 }
