@@ -107,10 +107,10 @@ h_net_allowed() {
 	if [ -n "$H_INCL_F" ]; then
 		for f in $H_INCL_F; do
 			if cat $f | grep -v "^#" | h_regex_loop_match "" h_net_allowed_cb; then
-				h_log 2 "included network (bssid='$H_CUR_BSSID', channel=$H_CUR_CHANNEL, essid='$H_CUR_ESSID'), found in '$f'"
 				return 0
 			fi
 		done
+		h_log 2 "excluded network (bssid='$H_CUR_BSSID', channel=$H_CUR_CHANNEL, essid='$H_CUR_ESSID'), not found in '$f'"
 		return 1
 	fi
 	return 0
