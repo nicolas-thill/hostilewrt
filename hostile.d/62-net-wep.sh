@@ -1,6 +1,17 @@
 # h_net_wep
 # WEP network helper functions
 
+h_wep_key_found() {
+	grep -q "^$H_CUR_BSSID," $H_WEP_F 2>/dev/null
+}
+
+h_wep_key_log() {
+	local key
+	key=$(cat $H_CUR_KEY_F)
+	h_log 0 "key found: $key (bssid=$H_CUR_BSSID, channel=$H_CUR_CHANNEL, essid='$H_CUR_ESSID')"
+	echo "$H_CUR_BSSID,$H_CUR_ESSID,$H_CUR_CHANNEL,$key" >>$H_WEP_F
+}
+
 h_wep_wait_for_iv() {
 	local iv
 	local iv_min
@@ -24,14 +35,6 @@ h_wep_wait_for_iv() {
 	done
 	h_log 1 "not enough IVs captured"
 	return 1
-}
-
-h_wep_key_log() {
-	local key
-	key=$(cat $H_CUR_KEY_F)
-	h_log 0 "key found: $key  (bssid=$H_CUR_BSSID, channel=$H_CUR_CHANNEL, essid='$H_CUR_ESSID')"
-	echo "$H_CUR_BSSID,$H_CUR_ESSID,$H_CUR_CHANNEL,$key" >>$H_WEP_F
-	H_WEP_CHANNEL=$H_CUR_CHANNEL
 }
 
 h_wep_attack_is_working() {
@@ -293,10 +296,6 @@ h_wep_bruteforce() {
 	h_wep_bruteforce_try
 
 	h_hook_call_handlers on_wep_bruteforce_ended
-}
-
-h_wep_key_found() {
-	grep -q "^$H_CUR_BSSID," $H_WEP_F 2>/dev/null
 }
 
 h_wep_try_one_network() {
