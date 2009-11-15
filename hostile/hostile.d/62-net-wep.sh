@@ -74,16 +74,16 @@ h_wep_attack_try() {
 	replay_func=$1
 
 	h_replay_start $replay_func
+	h_auth_start h_wep_auth_fake1
+
 	clients=$(h_csv_get_network_sta $H_CUR_CSV_F $H_CUR_BSSID | grep -iv $H_MON_MAC)
 	if [ -n "$clients" ]; then
-		h_auth_start h_wep_auth_fake1
 		for client in $clients; do
 			h_log 1 "found a client station: $client"
 			h_auth_start h_wep_deauth -c $client
 		done
 	else
 		h_log 1 "no client station found"
-		h_auth_start h_wep_auth_fake1
 	fi
 
 	RC=1
