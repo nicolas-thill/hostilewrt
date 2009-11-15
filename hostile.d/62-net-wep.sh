@@ -84,8 +84,6 @@ h_wep_attack_try() {
 			h_log 1 "found a client station: $client"
 			h_auth_start h_wep_deauth -c $client
 		done
-	else
-		h_log 1 "no client station found"
 	fi
 
 	RC=1
@@ -148,8 +146,6 @@ h_wep_bruteforce_try() {
 			h_auth_start h_wep_deauth -c $client
 		done
 		sleep 1
-	else
-		h_log 1 "no client station found"
 	fi
 
 	country=$H_CUR_COUNTRY
