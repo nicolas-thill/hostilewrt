@@ -272,44 +272,48 @@ H_WEP_ATTACKS=" \
 "
 
 h_wep_attack() {
-	local capture_options
 	h_wep_key_found && return
 
 	h_log 1 "trying WEP attack mode"
 
 	h_hook_call_handlers on_wep_attack_started
 	
-	if [ $H_CAPTURE_IV_ONLY -gt 0 ]; then
-		H_CUR_CAP_FEXT="ivs"
-		capture_options="--output-format=ivs,csv"
-	else
-		H_CUR_CAP_FEXT="cap"
-		capture_options="--output-format=pcap,csv"
-	fi
-	h_capture_start h_capture --write $H_CUR_BASE_FNAME --bssid $H_CUR_BSSID --channel $H_CUR_CHANNEL $capture_options
-
-	sleep $H_MONITOR_TIME_LIMIT
-
-	H_CUR_CSV_F=$(h_get_last_file $H_CUR_BASE_FNAME-??.csv)
-	H_CUR_KEY_F="$H_CUR_BASE_FNAME.key"
-	
 	for attack in $H_WEP_ATTACKS; do
 		$attack && break
 	done
-
-	h_capture_stop
 
 	h_hook_call_handlers on_wep_attack_ended
 }
 
 h_wep_bruteforce() {
-	local capture_options
 	h_wep_key_found && return
 
 	h_log 1 "trying WEP bruteforce mode"
 
 	h_hook_call_handlers on_wep_bruteforce_started
 	
+	h_wep_bruteforce_try
+
+	h_hook_call_handlers on_wep_bruteforce_ended
+}
+
+h_wep_key_found() {
+	grep -q "^$H_CUR_BSSID," $H_WEP_F 2>/dev/null
+}
+
+h_wep_try_one_network() {
+	local capture_options
+
+	h_net_switch $1 || return 1
+	h_net_allowed || return 1
+
+	if h_wep_key_found; then
+		h_log 1 "skipping known WEP network (bssid='$H_CUR_BSSID', channel=$H_CUR_CHANNEL, essid='$H_CUR_ESSID')"
+		return 0
+	fi
+
+	h_log 1 "trying WEP network (bssid='$H_CUR_BSSID', channel=$H_CUR_CHANNEL, essid='$H_CUR_ESSID')"
+
 	h_log 1 "monitoring AP traffic for $H_MONITOR_TIME_LIMIT seconds"
 	if [ $H_CAPTURE_IV_ONLY -gt 0 ]; then
 		H_CUR_CAP_FEXT="ivs"
@@ -325,30 +329,10 @@ h_wep_bruteforce() {
 	H_CUR_CSV_F=$(h_get_last_file $H_CUR_BASE_FNAME-??.csv)
 	H_CUR_KEY_F="$H_CUR_BASE_FNAME.key"
 	
-	h_wep_bruteforce_try
-
-	h_capture_stop
-
-	h_hook_call_handlers on_wep_bruteforce_ended
-}
-
-h_wep_key_found() {
-	grep -q "^$H_CUR_BSSID," $H_WEP_F 2>/dev/null
-}
-
-h_wep_try_one_network() {
-	h_net_switch $1 || return 1
-	h_net_allowed || return 1
-
-	if h_wep_key_found; then
-		h_log 1 "skipping known WEP network (bssid='$H_CUR_BSSID', channel=$H_CUR_CHANNEL, essid='$H_CUR_ESSID')"
-		return 0
-	fi
-
-	h_log 1 "trying WEP network (bssid='$H_CUR_BSSID', channel=$H_CUR_CHANNEL, essid='$H_CUR_ESSID')"
-
 	[ "$H_OP_MODE_wep_bruteforce" = "1" ] && h_wep_bruteforce
 	[ "$H_OP_MODE_wep_attack" = "1" ] && h_wep_attack
+
+	h_capture_stop
 
 	[ -n "$H_SMALL_STORAGE" ] && h_clean_run_d
 }
