@@ -1,6 +1,17 @@
 # h_net_wpa
 # WPA network helper functions
 
+h_wpa_key_found() {
+	grep -q "^$H_CUR_BSSID," $H_WPA_F 2>/dev/null
+}
+
+h_wpa_key_log() {
+	local key
+	key=$(cat $H_CUR_KEY_F)
+	h_log 0 "key found: $key (bssid=$H_CUR_BSSID, channel=$H_CUR_CHANNEL, essid='$H_CUR_ESSID')"
+	echo "$H_CUR_BSSID,$H_CUR_ESSID,$H_CUR_CHANNEL,$key" >>$H_WPA_F
+}
+
 h_wpa_dict_crack() {
 	local dictfile
 	dictfile=$1
@@ -25,17 +36,6 @@ h_wpa_wait_for_hs() {
 	done
 	h_log 1 "no WPA handshake captured"
 	return 1
-}
-
-h_wpa_key_found() {
-	grep -q "^$H_CUR_BSSID," $H_WPA_F 2>/dev/null
-}
-
-h_wpa_key_log() {
-	local key
-	key=$(cat $H_CUR_KEY_F)
-	h_log 0 "key found: $key (bssid=$H_CUR_BSSID, channel=$H_CUR_CHANNEL, essid='$H_CUR_ESSID')"
-	echo "$H_CUR_BSSID,$H_CUR_ESSID,$H_CUR_CHANNEL,$key" >>$H_WPA_F
 }
 
 h_wpa_bruteforce_try() {
