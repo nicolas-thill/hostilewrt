@@ -26,7 +26,7 @@ h_wep_wait_for_iv() {
 	return 1
 }
 
-h_wep_log_key() {
+h_wep_key_log() {
 	local key
 	key=$(cat $H_CUR_KEY_F)
 	h_log 0 "key found: $key  (bssid=$H_CUR_BSSID, channel=$H_CUR_CHANNEL, essid='$H_CUR_ESSID')"
@@ -112,7 +112,7 @@ h_wep_attack_try() {
 			fi
 			if [ -f $H_CUR_KEY_F ]; then
 				h_hook_call_handlers on_wep_key_found
-				h_wep_log_key
+				h_wep_key_log
 				RC=0
 				break
 			fi
@@ -162,7 +162,7 @@ h_wep_bruteforce_try() {
 				h_wep_dict_crack $keysize $dict
 				if [ -f $H_CUR_KEY_F ]; then
 					h_hook_call_handlers on_wep_key_found
-					h_wep_log_key
+					h_wep_key_log
 					RC=0
 					break
 				fi
