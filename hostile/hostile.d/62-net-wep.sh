@@ -9,6 +9,8 @@ h_wep_wait_for_iv() {
 	local time_elapsed
 
 	iv_min=$1
+	iv=$(h_csv_get_network_iv_count $H_CUR_CSV_F $H_CUR_BSSID)
+	[ $iv -ge $iv_min ] && return 0
 	h_log 1 "waiting $iv_min IVs for $H_INJECTION_TIME_LIMIT seconds"
 	time_start=$(h_now)
 	while [ 1 ]; do
