@@ -177,7 +177,7 @@ h_wep_bruteforce_try() {
 }
 
 h_wep_crack() {
-	h_exec aircrack-ng -q -b $H_CUR_BSSID -l $H_CUR_KEY_F $H_CUR_BASE_FNAME-??.$H_CUR_CAP_FEXT
+	h_exec aircrack-ng -q -b $H_CUR_BSSID -f 3 -l $H_CUR_KEY_F $H_CUR_BASE_FNAME-??.$H_CUR_CAP_FEXT
 }
 
 h_wep_dict_crack() {
