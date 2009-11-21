@@ -57,61 +57,57 @@ h_monitor_all() {
 }
 
 
-h_net_allowed_cb() {
+h_net_match_cb() {
 	local value
 	local pattern
 	value="" # $1 is ignored, will be generated depending on the pattern
 	pattern="$2"
-	# if the pattern contains BSSID="...", then use the current BSSID for matching
+	# if the pattern contains BSSID="...", then use BSSID for matching
 	echo "$pattern" | grep -q 'BSSID=".*"' \
-		&& value="BSSID=\"${H_CUR_BSSID}\""
-	# if the pattern contains CHANNEL="...", then use the current CHANNEL for matching
+		&& value="BSSID=\"${H_NEW_BSSID}\""
+	# if the pattern contains CHANNEL="...", then use CHANNEL for matching
 	echo "$pattern" | grep -q 'CHANNEL=".*"' \
-		&& value="${value}${value:+\s+}CHANNEL=\"${H_CUR_CHANNEL}\""
-	# if the pattern contains ESSID="...", then use the current ESSID for matching
+		&& value="${value}${value:+\s+}CHANNEL=\"${H_NEW_CHANNEL}\""
+	# if the pattern contains ESSID="...", then use ESSID for matching
 	echo "$pattern" | grep -q 'ESSID=".*"' \
-		&& value="${value}${value:+\s+}ESSID=\"${H_CUR_ESSID}\""
+		&& value="${value}${value:+\s+}ESSID=\"${H_NEW_ESSID}\""
 	h_regex_match "$value" "$pattern"
 }
 
-h_net_allowed() {
+h_net_switch() {
+	local N
+
+	N=$1
+	H_NEW_BSSID=$(h_kis_get_network_bssid $H_ALL_KIS_F $N)
+	H_NEW_CHANNEL=$(h_kis_get_network_channel $H_ALL_KIS_F $N)
+	H_NEW_ESSID=$(h_kis_get_network_essid $H_ALL_KIS_F $N)
+
+	if [ -n "$H_STA_CONNECTED" -a "$H_NEW_CHANNEL" != "$H_CUR_CHANNEL" ]; then
+		h_log 1 "sta connected, using channel $H_CUR_CHANNEL, skipping network (bssid='$H_NEW_BSSID', channel=$H_NEW_CHANNEL, essid='$H_NEW_ESSID')"
+		return 1
+	fi
+
 	if [ -n "$H_EXCL_F" ]; then
 		for f in $H_EXCL_F; do
-			if cat $f | grep -v "^#" | h_regex_loop_match "" h_net_allowed_cb; then
-				h_log 2 "excluded network (bssid='$H_CUR_BSSID', channel=$H_CUR_CHANNEL, essid='$H_CUR_ESSID'), found in '$f'"
+			if cat $f | grep -v "^#" | h_regex_loop_match "" h_net_match_cb; then
+				h_log 2 "excluded network (bssid='$H_NEW_BSSID', channel=$H_NEW_CHANNEL, essid='$H_NEW_ESSID'), found in '$f'"
 				return 1
 			fi
 		done
 	fi
 	if [ -n "$H_INCL_F" ]; then
 		for f in $H_INCL_F; do
-			if cat $f | grep -v "^#" | h_regex_loop_match "" h_net_allowed_cb; then
-				return 0
+			if cat $f | grep -v "^#" | h_regex_loop_match "" h_net_match_cb; then
+				h_log 2 "included network (bssid='$H_NEW_BSSID', channel=$H_NEW_CHANNEL, essid='$H_NEW_ESSID'), found in '$f'"
+				break
 			fi
 		done
-		h_log 2 "excluded network (bssid='$H_CUR_BSSID', channel=$H_CUR_CHANNEL, essid='$H_CUR_ESSID'), not found in '$f'"
+		h_log 2 "excluded network (bssid='$H_NEW_BSSID', channel=$H_NEW_CHANNEL, essid='$H_NEW_ESSID')"
 		return 1
 	fi
-	return 0
-}
-
-h_net_switch() {
-	local N
-	local bssid
-	local channel
-	local essid
-
-	N=$1
-	bssid=$(h_kis_get_network_bssid $H_ALL_KIS_F $N)
-	channel=$(h_kis_get_network_channel $H_ALL_KIS_F $N)
-	essid=$(h_kis_get_network_essid $H_ALL_KIS_F $N)
-	if [ -n "$H_STA_CONNECTED" -a "$channel" != "$H_CUR_CHANNEL" ]; then
-		h_log 1 "sta connected, using channel $H_CUR_CHANNEL, skipping network (bssid='$bssid', channel=$channel, essid='$essid')"
-		return 1
-	fi
-	H_CUR_BSSID="$bssid"
-	H_CUR_ESSID="$essid"
-	h_hook_call_handlers on_wifi_channel_change $channel
+	H_CUR_BSSID="$H_NEW_BSSID"
+	H_CUR_ESSID="$H_NEW_ESSID"
+	h_hook_call_handlers on_wifi_channel_change $H_NEW_CHANNEL
 	H_CUR_BASE_FNAME=$(h_get_sane_fname $H_CUR_BSSID)
 	return 0
 }
