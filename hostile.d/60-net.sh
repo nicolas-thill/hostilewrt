@@ -57,27 +57,6 @@ h_monitor_all() {
 }
 
 
-h_net_switch() {
-	local N
-	local bssid
-	local channel
-	local essid
-
-	N=$1
-	bssid=$(h_kis_get_network_bssid $H_ALL_KIS_F $N)
-	channel=$(h_kis_get_network_channel $H_ALL_KIS_F $N)
-	essid=$(h_kis_get_network_essid $H_ALL_KIS_F $N)
-	if [ -n "$H_STA_CONNECTED" -a "$channel" != "$H_CUR_CHANNEL" ]; then
-		h_log 1 "sta connected, using channel $H_CUR_CHANNEL, skipping network (bssid='$bssid', channel=$channel, essid='$essid')"
-		return 1
-	fi
-	H_CUR_BSSID="$bssid"
-	H_CUR_ESSID="$essid"
-	h_hook_call_handlers on_wifi_channel_change $channel
-	H_CUR_BASE_FNAME=$(h_get_sane_fname $H_CUR_BSSID)
-	return 0
-}
-
 h_net_allowed_cb() {
 	local value
 	local pattern
@@ -116,3 +95,23 @@ h_net_allowed() {
 	return 0
 }
 
+h_net_switch() {
+	local N
+	local bssid
+	local channel
+	local essid
+
+	N=$1
+	bssid=$(h_kis_get_network_bssid $H_ALL_KIS_F $N)
+	channel=$(h_kis_get_network_channel $H_ALL_KIS_F $N)
+	essid=$(h_kis_get_network_essid $H_ALL_KIS_F $N)
+	if [ -n "$H_STA_CONNECTED" -a "$channel" != "$H_CUR_CHANNEL" ]; then
+		h_log 1 "sta connected, using channel $H_CUR_CHANNEL, skipping network (bssid='$bssid', channel=$channel, essid='$essid')"
+		return 1
+	fi
+	H_CUR_BSSID="$bssid"
+	H_CUR_ESSID="$essid"
+	h_hook_call_handlers on_wifi_channel_change $channel
+	H_CUR_BASE_FNAME=$(h_get_sane_fname $H_CUR_BSSID)
+	return 0
+}
