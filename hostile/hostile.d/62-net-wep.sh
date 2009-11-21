@@ -296,9 +296,6 @@ h_wep_bruteforce() {
 h_wep_try_one_network() {
 	local capture_options
 
-	h_net_switch $1 || return 1
-	h_net_allowed || return 1
-
 	if h_wep_key_found; then
 		h_log 1 "skipping known WEP network (bssid='$H_CUR_BSSID', channel=$H_CUR_CHANNEL, essid='$H_CUR_ESSID')"
 		return 0
@@ -331,7 +328,8 @@ h_wep_try_one_network() {
 
 h_wep_try_all_networks() {
 	for N in $(cat $H_NET_WEP_F); do
-		h_wep_try_one_network $N
+		h_net_switch $N || continue
+		h_wep_try_one_network
 		h_backup_results
 	done
 }
