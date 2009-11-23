@@ -23,7 +23,7 @@ h_sta_startup() {
 h_sta_cleanup() {
 	h_log 1 "Client: stopping"
 
-	h_run iptables -t nat D POSTROUTING -o $H_STA_IF -j MASQUERADE
+	h_run iptables -t nat -D POSTROUTING -o $H_STA_IF -j MASQUERADE
 	h_run ifconfig $H_STA_IF down
 
 	h_hook_unregister_handler on_app_ending h_sta_cleanup
