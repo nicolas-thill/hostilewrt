@@ -37,6 +37,10 @@ h_monitor_all() {
 	h_kis_get_networks_by_enc $H_ALL_KIS_F "O" >$H_NET_OPEN_F
 	h_kis_get_networks_by_enc $H_ALL_KIS_F "WEP" >$H_NET_WEP_F
 	h_kis_get_networks_by_enc $H_ALL_KIS_F "WPA" >$H_NET_WPA_F
+	n_open=$(wc -l <$H_NET_OPEN_F)
+	n_wep=$(wc -l <$H_NET_WEP_F)
+	n_wpa=$(wc -l <$H_NET_WPA_F)
+	h_log 1 "found $n_open open, $n_wep WEP & $n_wpa WPA networks"
 
 	if [ -z "$H_CUR_COUNTRY" ]; then
 		h_log 1 "guessing country code..."
@@ -49,11 +53,6 @@ h_monitor_all() {
 			H_CUR_COUNTRY="generic"
 		fi
 	fi
-
-	n_open=$(wc -l <$H_NET_OPEN_F)
-	n_wep=$(wc -l <$H_NET_WEP_F)
-	n_wpa=$(wc -l <$H_NET_WPA_F)
-	h_log 1 "found $n_open open, $n_wep WEP & $n_wpa WPA networks"
 }
 
 
