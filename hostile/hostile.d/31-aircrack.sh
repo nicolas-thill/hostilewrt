@@ -42,6 +42,27 @@ h_csv_get() {
 
 #
 # @function
+#  h_csv_get_essid
+# @description
+#  get the current ESSID for the specified AP
+# @arguments
+#  - file
+#    a .csv file
+#  - bssid
+#    the BSSID of the requested AP
+# @returns
+#  the network ESSID (string) on stdout
+# 
+h_csv_get_essid() {
+	local F
+	local B
+	F=$1
+	B=$2
+	h_csv_get $F $B | awk -F\, '{ print $14; }'
+}
+
+#
+# @function
 #  h_csv_get_network_iv_count
 # @description
 #  get the current IV count for the specified AP
