@@ -109,7 +109,7 @@ h_wifi_mac80211_detect() {
 		
 		h_hook_register_handler on_wifi_startup h_wifi_mac80211_startup
 		h_hook_register_handler on_wifi_cleanup h_wifi_mac80211_cleanup
-		h_hook_register_handler on_wifi_cleanup h_wifi_mac80211_channel_change
+		h_hook_register_handler on_wifi_channel_change h_wifi_mac80211_channel_change
 	fi
 
 	return 0
