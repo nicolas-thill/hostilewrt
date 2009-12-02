@@ -115,6 +115,13 @@ h_wpa_try_one_network() {
 	H_CUR_CSV_F=$(h_get_last_file $H_CUR_BASE_FNAME-??.csv)
 	H_CUR_KEY_F="$H_CUR_BASE_FNAME.key"
 	
+	if [ -z "$H_CUR_ESSID" ]; then
+		H_CUR_ESSID=$(h_cvs_get_essid $CUR_CSV_F $H_CUR_BSSID)
+		if [ -n "$H_CUR_ESSID" ]; then
+			h_log 1 "finally found network ESSID (bssid='$H_CUR_BSSID', channel=$H_CUR_CHANNEL, essid='$H_CUR_ESSID')"
+		fi
+	fi
+
 	[ "$H_OP_MODE_wpa_bruteforce" = "1" ] && h_wpa_bruteforce
 
 	h_capture_stop
