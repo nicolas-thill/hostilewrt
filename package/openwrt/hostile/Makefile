@@ -1,5 +1,5 @@
 #
-# Copyright (C) 2009 HostileWrt
+# Copyright (C) 2009-2010 HostileWrt
 #
 # This is free software, licensed under the GNU General Public License v2.
 # See /LICENSE for more information.
@@ -9,7 +9,7 @@ include $(TOPDIR)/rules.mk
 
 PKG_NAME:=hostile
 PKG_VERSION:=git
-PKG_RELEASE:=1
+PKG_RELEASE:=2
 
 PKG_SOURCE:=$(PKG_NAME)-$(PKG_VERSION).tar.gz
 PKG_SOURCE_SUBDIR:=$(PKG_NAME)-$(PKG_VERSION)
@@ -58,10 +58,10 @@ define Package/hostile/install
 	    -e 's|^\(H_PID_F\)=.*$$$$|\1=/var/run/hostile.pid|' \
 	    -e 's|^\(H_RUN_D\)=.*$$$$|\1=/var/run/hostile|' \
 		$(1)/etc/hostile.conf
+	$(INSTALL_DIR) $(1)/etc/default
+	$(INSTALL_DATA) ./files/hostile.default $(1)/etc/default/hostile
 	$(INSTALL_DIR) $(1)/etc/init.d
 	$(INSTALL_BIN) ./files/hostile.init $(1)/etc/init.d/hostile
-	$(INSTALL_DIR) $(1)/www/cgi-bin
-	$(INSTALL_BIN) ./files/hostile.cgi $(1)/www/cgi-bin/hostile
 endef
 
 $(eval $(call BuildPackage,hostile))

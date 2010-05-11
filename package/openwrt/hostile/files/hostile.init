@@ -1,17 +1,23 @@
 #!/bin/sh /etc/rc.common
-# Copyright (C) 2009 HostileWrt
+# Copyright (C) 2009-2010 HostileWrt
 
 START=99
 STOP=01
 
-OPTIONS="-vv"
+BIN=hostile
+DEF_F=/etc/default/$BIN
+PID_F=/var/run/$BIN.pid
+
+[ -r $DEF_F ] && . $DEF_F
 
 SSD=start-stop-daemon
 
 start() {
-	$SSD -S -b -x hostile -- $OPTIONS
+	[ -n "$DISABLED" ] && return
+	$SSD -S -b -x $BIN -- $OPTIONS
 }
 
 stop() {
-	$SSD -K -p /var/run/hostile.pid
+	[ -n "$DISABLED" ] && return
+	$SSD -K -p $PID_F
 }
