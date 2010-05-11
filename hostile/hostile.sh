@@ -369,17 +369,6 @@ if [ "$H_BACKUP_TO_PERSISTENT_STORAGE" -a $H_BACKUP_TO_PERSISTENT_STORAGE -gt 0 
 	fi
 }
 
-h_get_last_file() {
-	echo $(ls -1 $* | tail -n 1)
-}
-
-h_get_sane_fname() {
-	local F
-	F=$1
-	echo $F | tr ':/' '__'
-}
-
-
 h_clean_run_d() {
 	h_log 1 "limited storage space available, purging run files"
 	h_run rm -f $H_CUR_BASE_FNAME-??.csv $H_CUR_BASE_FNAME-??.kismet.csv *.cap *.ivs *.wpa_hs *.xor
