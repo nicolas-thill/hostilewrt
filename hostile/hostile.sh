@@ -186,19 +186,6 @@ h_run() {
 	return $rc
 }
 
-h_detect_small_storage() {
-	local avail
-	
-	avail=$(df -m $H_RUN_D | tail -n +2 | awk '{ print $4; }')
-	if [ -z "$avail" ]; then
-		h_log 1 "unable to guess available storage space"
-		return
-	fi
-	if [ $avail -lt 100 ]; then
-		H_SMALL_STORAGE=1
-	fi
-}
-
 #
 # @function
 #  h_rel2abs

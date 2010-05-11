@@ -53,4 +53,18 @@ h_platform_detect() {
 	return 0
 }
 
+h_platform_detect_small_storage() {
+	local avail
+	
+	avail=$(df -m $H_RUN_D | tail -n +2 | awk '{ print $4; }')
+	if [ -z "$avail" ]; then
+		h_log 1 "unable to guess available storage space"
+		return
+	fi
+	if [ $avail -lt 100 ]; then
+		H_SMALL_STORAGE=1
+	fi
+}
+
 h_hook_register_handler on_app_starting h_platform_detect
+h_hook_register_handler on_app_starting h_platform_detect_small_storage
