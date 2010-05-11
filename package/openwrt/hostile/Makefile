@@ -8,14 +8,14 @@
 include $(TOPDIR)/rules.mk
 
 PKG_NAME:=hostile
-PKG_VERSION:=git
-PKG_RELEASE:=2
+PKG_VERSION:=0.5.1
+PKG_RELEASE:=1
 
 PKG_SOURCE:=$(PKG_NAME)-$(PKG_VERSION).tar.gz
 PKG_SOURCE_SUBDIR:=$(PKG_NAME)-$(PKG_VERSION)
 PKG_SOURCE_PROTO:=git
 PKG_SOURCE_URL:=http://github.com/psycho-nico/hostilewrt.git
-PKG_SOURCE_VERSION:=HEAD
+PKG_SOURCE_VERSION:=stable
 
 include $(INCLUDE_DIR)/package.mk
 
