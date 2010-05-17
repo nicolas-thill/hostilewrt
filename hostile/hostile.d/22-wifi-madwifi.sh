@@ -162,8 +162,8 @@ h_wifi_madwifi_detect() {
 		h_hook_register_handler on_wifi_startup h_wifi_madwifi_startup
 		h_hook_register_handler on_wifi_cleanup h_wifi_madwifi_cleanup
 		h_hook_register_handler on_wifi_channel_change h_wifi_madwifi_channel_change
-		h_hook_register_handler on_wifi_sta_connect h_wifi_madwifi_sta_connect
-		h_hook_register_handler on_wifi_sta_disconnect h_wifi_madwifi_sta_disconnect
+		h_hook_register_handler on_wifi_sta_startup h_wifi_madwifi_sta_startup
+		h_hook_register_handler on_wifi_sta_cleanup h_wifi_madwifi_sta_cleanup
 	fi
 
 	return 0
