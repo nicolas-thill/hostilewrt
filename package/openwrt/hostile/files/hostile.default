@@ -1,2 +1,2 @@
 DISABLED=1
-OPTIONS:="-vv"
+OPTIONS="-vv"
