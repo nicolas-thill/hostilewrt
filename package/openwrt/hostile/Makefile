@@ -15,7 +15,7 @@ PKG_SOURCE:=$(PKG_NAME)-$(PKG_VERSION).tar.gz
 PKG_SOURCE_SUBDIR:=$(PKG_NAME)-$(PKG_VERSION)
 PKG_SOURCE_PROTO:=git
 PKG_SOURCE_URL:=http://github.com/psycho-nico/hostilewrt.git
-PKG_SOURCE_VERSION:=stable
+PKG_SOURCE_VERSION:= -b stable -t origin/stable
 
 include $(INCLUDE_DIR)/package.mk
 
