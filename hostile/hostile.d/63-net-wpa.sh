@@ -142,3 +142,12 @@ h_wpa_try_all_networks() {
 		h_backup_results
 	done
 }
+
+h_wpa_startup() {
+	H_WPA_F=$H_RUN_D/hostile-wpa.txt
+	touch $H_WPA_F >/dev/null 2>&1 \
+		|| h_error "can't create WPA key file '$H_WPA_F'"
+	return 0
+}
+
+h_hook_register_handler on_app_starting h_wpa_startup
