@@ -1,4 +1,11 @@
-# AP
+# ap
+
+#
+# Copyright (C) 2009-2010 /tmp/lap <contact@tmplab.org>
+#
+# This is free software, licensed under the Exception General Public 
+# License v2. See /COPYING for more information.
+#
 
 H_AP_DNSMASQ_LEASE_F=$H_RUN_D/dnsmasq.leases
 H_AP_DNSMASQ_PID_F=$H_RUN_D/dnsmasq.pid

@@ -1,5 +1,11 @@
-# h_net_wpa
-# WPA network helper functions
+# net-wpa | WPA network helper functions
+
+#
+# Copyright (C) 2009-2010 /tmp/lap <contact@tmplab.org>
+#
+# This is free software, licensed under the Exception General Public 
+# License v2. See /COPYING for more information.
+#
 
 h_wpa_key_found() {
 	grep -q "^$H_CUR_BSSID," $H_WPA_F 2>/dev/null

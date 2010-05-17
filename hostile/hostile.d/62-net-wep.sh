@@ -1,5 +1,11 @@
-# h_net_wep
-# WEP network helper functions
+# net-wep | WEP network helper functions
+
+#
+# Copyright (C) 2009-2010 /tmp/lap <contact@tmplab.org>
+#
+# This is free software, licensed under the Exception General Public 
+# License v2. See /COPYING for more information.
+#
 
 h_wep_key_found() {
 	grep -q "^$H_CUR_BSSID," $H_WEP_F 2>/dev/null
