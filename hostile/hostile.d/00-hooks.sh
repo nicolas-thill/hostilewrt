@@ -7,10 +7,6 @@
 # License v2. See /COPYING for more information.
 #
 
-# existing hooks
-# - on_app_starting() / on_app_started()
-# - on_app_ending() / on_app_ended()
-
 h_hook_register_handler() {
 	local hook
 	local handler
