@@ -55,3 +55,5 @@
     called when bruteforce WPA dictionnary attack is started
   - on_wpa_bruteforce_ended
     called when bruteforce WPA dictionnary attack is ended
+  - on_wpa_key_found
+    called when a WPA key has been found
