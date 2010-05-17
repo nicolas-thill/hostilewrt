@@ -300,8 +300,6 @@ h_startup() {
 		eval "H_OP_MODE_$M=1"
 	done
 
-	h_detect_small_storage
-
 	for M in $H_LIB_D/[0-9][0-9]-*.sh; do
 		h_log 1 "loading module: $M"
 		. $M
