@@ -28,6 +28,7 @@ Options:
 	-E,--exclude FILE     exclude networks using patterns from FILE
 	-I,--include FILE     include networks using patterns from FILE
 
+	-C,--cfg-file FILE    use the specified configuration file
 	-l,--log-file FILE    log activity to the specified file
 	-L,--lib-dir DIR      use the specified lib directory
 	                      (for helper functions & scripts)
