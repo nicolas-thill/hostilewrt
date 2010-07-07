@@ -230,10 +230,10 @@ h_startup() {
 	H_TIME_START=$(h_now)
 	if [ -n "$H_OPT_CONFIG_F" ]; then
 		H_CONFIG_F=$H_OPT_CONFIG_F
-	elif [ -f /etc/hostile.conf ]; then
-		H_CONFIG_F=/etc/hostile.conf
 	elif [ -f $H_MY_D/hostile.conf ]; then
 		H_CONFIG_F=$H_MY_D/hostile.conf
+	elif [ -f /etc/hostile.conf ]; then
+		H_CONFIG_F=/etc/hostile.conf
 	else
 		h_error "can't find any config file, use a '--config-file' option"
 	fi
