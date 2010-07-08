@@ -12,7 +12,7 @@ H_MY_D=${0%/*}
 H_MY_D=$(cd $H_MY_D; pwd)
 H_MY_WD=$(pwd)
 H_MY_PID=$$
-H_VERSION="0.5.1"
+H_VERSION="0.5.2"
 
 h_usage() {
 	cat << _END_OF_USAGE_
