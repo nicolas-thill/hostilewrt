@@ -1,0 +1,59 @@
+# hooks
+
+* Startup
+  - on_app_starting
+    called at application start, but before the wireless has been 
+    activated
+  - on_app_started
+    called at application start, after the wireless has been 
+    activated
+
+* Cleanup
+  - on_app_ending
+    called at application end, but before the wireless has been 
+    deactivated
+  - on_app_ended
+    called at application end, after the wireless has been 
+    deactivated
+
+* Wireless
+  - on_wifi_startup
+    called at application start to activate wireless
+  - on_wifi_cleanup
+    called at application end to deactivate wireless
+  - on_wifi_channel_change CHANNEL
+    called when wireless channel needs to be changed to CHANNEL
+  - on_wifi_channel_changing NEW_CHANNEL OLD_CHANNEL
+    called when wireless channel is about to change from OLD_CHANNEL to
+    NEW_CHANNEL
+  - on_wifi_channel_changed NEW_CHANNEL OLD_CHANNEL
+    called when wireless channel has been changed from OLD_CHANNEL to 
+    NEW_CHANNEL
+
+* Wireless | Client mode
+  - on_wifi_sta_startup ENCRYPTION KEY
+    called to configure a wireless client connection (sta mode)
+  - on_wifi_sta_cleanup
+    called to deconfigure a wireless client connection
+
+* WEP
+  - on_wep_bruteforce_started
+    called when bruteforce WEP dictionnary attack is started
+  - on_wep_bruteforce_ended
+    called when bruteforce WEP dictionnary attack is ended
+  - on_wep_attack_started
+    called when WEP attack is started
+  - on_wep_attack_working
+    called when WEP attack is working (injection is working)
+  - on_wep_attack_ended
+    called when WEP attack is ended
+  - on_wep_key_found
+    called when a WEP key has been found (either bruteforce or attack)
+
+* WPA
+  - on_wpa_bruteforce_started
+    called when bruteforce WPA dictionnary attack is started
+  - on_wpa_bruteforce_ended
+    called when bruteforce WPA dictionnary attack is ended
+  - on_wpa_key_found
+    called when a WPA key has been found

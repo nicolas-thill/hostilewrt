@@ -1,5 +1,11 @@
-# h_net_wpa
-# WPA network helper functions
+# net-wpa | WPA network helper functions
+
+#
+# Copyright (C) 2009-2010 /tmp/lap <contact@tmplab.org>
+#
+# This is free software, licensed under the Exception General Public 
+# License v2. See /COPYING for more information.
+#
 
 h_wpa_key_found() {
 	grep -q "^$H_CUR_BSSID," $H_WPA_F 2>/dev/null
@@ -136,3 +142,12 @@ h_wpa_try_all_networks() {
 		h_backup_results
 	done
 }
+
+h_wpa_startup() {
+	H_WPA_F=$H_RUN_D/hostile-wpa.txt
+	touch $H_WPA_F >/dev/null 2>&1 \
+		|| h_error "can't create WPA key file '$H_WPA_F'"
+	return 0
+}
+
+h_hook_register_handler on_app_starting h_wpa_startup

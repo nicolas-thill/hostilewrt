@@ -1,4 +1,11 @@
-# h_wifi_madwifi
+# wifi-madwifi
+
+#
+# Copyright (C) 2009-2010 /tmp/lap <contact@tmplab.org>
+#
+# This is free software, licensed under the Exception General Public 
+# License v2. See /COPYING for more information.
+#
 
 h_wifi_madwifi_startup() {
 	H_AP_IF=ath0
@@ -155,8 +162,8 @@ h_wifi_madwifi_detect() {
 		h_hook_register_handler on_wifi_startup h_wifi_madwifi_startup
 		h_hook_register_handler on_wifi_cleanup h_wifi_madwifi_cleanup
 		h_hook_register_handler on_wifi_channel_change h_wifi_madwifi_channel_change
-		h_hook_register_handler on_wifi_sta_connect h_wifi_madwifi_sta_connect
-		h_hook_register_handler on_wifi_sta_disconnect h_wifi_madwifi_sta_disconnect
+		h_hook_register_handler on_wifi_sta_startup h_wifi_madwifi_sta_startup
+		h_hook_register_handler on_wifi_sta_cleanup h_wifi_madwifi_sta_cleanup
 	fi
 
 	return 0

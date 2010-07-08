@@ -1,4 +1,11 @@
-# STA
+# sta
+
+#
+# Copyright (C) 2009-2010 /tmp/lap <contact@tmplab.org>
+#
+# This is free software, licensed under the Exception General Public 
+# License v2. See /COPYING for more information.
+#
 
 H_STA_UDHCPC_PID_F=$H_RUN_D/udhcpc.pid
 H_STA_UDHCPC_SCRIPT_F=$H_LIB_D/udhcpc.sh

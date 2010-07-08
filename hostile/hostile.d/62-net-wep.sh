@@ -1,5 +1,11 @@
-# h_net_wep
-# WEP network helper functions
+# net-wep | WEP network helper functions
+
+#
+# Copyright (C) 2009-2010 /tmp/lap <contact@tmplab.org>
+#
+# This is free software, licensed under the Exception General Public 
+# License v2. See /COPYING for more information.
+#
 
 h_wep_key_found() {
 	grep -q "^$H_CUR_BSSID," $H_WEP_F 2>/dev/null
@@ -340,3 +346,12 @@ h_wep_try_all_networks() {
 		h_backup_results
 	done
 }
+
+h_wep_startup() {
+	H_WEP_F=$H_RUN_D/hostile-wep.txt
+	touch $H_WEP_F >/dev/null 2>&1 \
+		|| h_error "can't create WEP key file '$H_WEP_F'"
+	return 0
+}
+
+h_hook_register_handler on_app_starting h_wep_startup

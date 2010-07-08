@@ -1,11 +1,18 @@
 #!/bin/sh
 
+#
+# Copyright (C) 2009-2010 /tmp/lap <contact@tmplab.org>
+#
+# This is free software, licensed under the Exception General Public 
+# License v2. See /COPYING for more information.
+#
+
 H_ME=${0##*/}
 H_MY_D=${0%/*}
 H_MY_D=$(cd $H_MY_D; pwd)
 H_MY_WD=$(pwd)
 H_MY_PID=$$
-H_VERSION="0.5.1"
+H_VERSION="0.5.2"
 
 h_usage() {
 	cat << _END_OF_USAGE_
@@ -21,6 +28,7 @@ Options:
 	-E,--exclude FILE     exclude networks using patterns from FILE
 	-I,--include FILE     include networks using patterns from FILE
 
+	-C,--cfg-file FILE    use the specified configuration file
 	-l,--log-file FILE    log activity to the specified file
 	-L,--lib-dir DIR      use the specified lib directory
 	                      (for helper functions & scripts)
@@ -39,7 +47,7 @@ _END_OF_USAGE_
 
 h_version() {
 	cat << _END_OF_VERSION_
-$H_ME v$H_VERSION, Copyright (C) 2009 /tmp/lap <contact@tmplab.org>
+$H_ME v$H_VERSION, Copyright (C) 2009-2010 /tmp/lap <contact@tmplab.org>
 
 This program is free and excepted software; you can use it, redistribute it
 and/or modify it under the terms of the Exception General Public License as
@@ -222,10 +230,10 @@ h_startup() {
 	H_TIME_START=$(h_now)
 	if [ -n "$H_OPT_CONFIG_F" ]; then
 		H_CONFIG_F=$H_OPT_CONFIG_F
-	elif [ -f /etc/hostile.conf ]; then
-		H_CONFIG_F=/etc/hostile.conf
 	elif [ -f $H_MY_D/hostile.conf ]; then
 		H_CONFIG_F=$H_MY_D/hostile.conf
+	elif [ -f /etc/hostile.conf ]; then
+		H_CONFIG_F=/etc/hostile.conf
 	else
 		h_error "can't find any config file, use a '--config-file' option"
 	fi
@@ -277,14 +285,6 @@ h_startup() {
 	cd $H_TMP_D >/dev/null 2>&1 \
 		|| h_error "can't use tmp directory '$H_TMP_D'"
 	
-	H_WEP_F=$H_RUN_D/hostile-wep.txt
-	touch $H_WEP_F >/dev/null 2>&1 \
-		|| h_error "can't create wep key file '$H_WEP_F'"
-
-	H_WPA_F=$H_RUN_D/hostile-wpa.txt
-	touch $H_WPA_F >/dev/null 2>&1 \
-		|| h_error "can't create wpa key file '$H_WPA_F'"
-
 	h_log 0 "starting"
 	h_log 1 "using config file: $H_CONFIG_F"
 	h_log 1 "using lib directory: $H_LIB_D"
@@ -300,8 +300,6 @@ h_startup() {
 	for M in $H_OP_MODES; do
 		eval "H_OP_MODE_$M=1"
 	done
-
-	h_detect_small_storage
 
 	for M in $H_LIB_D/[0-9][0-9]-*.sh; do
 		h_log 1 "loading module: $M"

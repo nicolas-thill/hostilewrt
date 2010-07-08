@@ -1,8 +1,11 @@
-# h_hook
+# hooks
 
-# existing hooks
-# - on_app_starting() / on_app_started()
-# - on_app_ending() / on_app_ended()
+#
+# Copyright (C) 2009-2010 /tmp/lap <contact@tmplab.org>
+#
+# This is free software, licensed under the Exception General Public 
+# License v2. See /COPYING for more information.
+#
 
 h_hook_register_handler() {
 	local hook
