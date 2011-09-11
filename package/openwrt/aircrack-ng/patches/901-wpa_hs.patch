@@ -1,6 +1,6 @@
 --- a/src/airodump-ng.c
 +++ b/src/airodump-ng.c
-@@ -308,6 +308,30 @@ int check_shared_key(unsigned char *h802
+@@ -579,6 +579,30 @@ int check_shared_key(unsigned char *h802
      return 0;
  }
  
@@ -31,7 +31,7 @@
  char usage[] =
  
  "\n"
-@@ -1935,6 +1959,8 @@ skip_probe:
+@@ -2221,6 +2245,8 @@ skip_probe:
                          perror( "fwrite(IV wpa_hdsk) failed" );
                          return( 1 );
                      }
