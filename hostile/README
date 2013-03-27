@@ -1,8 +1,8 @@
-= HostileWRT =
+= HostileWrt =
 
-Warning: HostileWRT is a security audit tool and an education tool, not a toy. Conducting audits in envirnonment where unknown, foreign or other WiFi Access Points not owned by you or your corporation may cause liability and result in prosecution.
+Warning: HostileWrt is a security audit tool and an education tool, not a toy. Conducting audits in envirnonment where unknown, foreign or other WiFi Access Points not owned by you or your corporation may cause liability and result in prosecution.
 
-More Warning: HostileWRT is a powerful tool and can be quiet disturbing, please play nice and restrict your "wireless investigations" to your *OWN* networks using the following options when running hostile.sh:
+More Warning: HostileWrt is a powerful tool and can be quiet disturbing, please play nice and restrict your "wireless investigations" to your *OWN* networks using the following options when running hostile.sh:
 
   --bssid BSSID      limit wireless exploration to this BSSID only
 
@@ -56,16 +56,16 @@ You may have to restart your Fonera in order for the USB support to work properl
 }}}
 
 
-== Get HostileWRT on your USB drive ==
+== Get HostileWrt on your USB drive ==
 
-See https://hostile.nico-and-co.net/trac/wiki for directions on how to use SVN (Subversion) to get the latest version of HostileWRT scripts on your key.
+See https://hostile.nico-and-co.net/trac/wiki for directions on how to use SVN (Subversion) to get the latest version of HostileWrt scripts on your key.
 
 
-== Running HostileWRT ==
+== Running HostileWrt ==
 
  * Plug your USB key into the FON2 (or other hardware with USB)
  * cd into /mnt/usbdrive
- * cd into your directory with the HostileWRT scripts
+ * cd into your directory with the HostileWrt scripts
  * Run hostile.sh
    {{{
     # ./hostile.sh &
